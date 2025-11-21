@@ -48,15 +48,8 @@ git commit -m "Initial commit: rebranded from propfind.ai"
 - **`src/app/admin/page.tsx`**:
   - Line 11: `"Manage your PropFind application"` → Your brand name
 
-#### C. Database Configuration
-- **`src/lib/db.ts`**:
-  - Line 5: `DB_NAME = process.env.DB_NAME || 'propfind'` → Your database name
-
-- **`DATABASE_SETUP.md`**:
-  - Update all references to "PropFind" and "propfind" with your new brand name
-
-#### D. Assets
-- **`public/logo.jpg`**: Replace with your new logo (keep the same filename or update references)
+#### C. Assets
+- **`public/logo.svg`**: Replace with your new logo (keep the same filename or update references)
 
 #### E. Colors (Optional)
 - **`src/app/globals.css`**: 
@@ -66,8 +59,7 @@ git commit -m "Initial commit: rebranded from propfind.ai"
 ### 4. Environment Variables
 
 If you have a `.env` or `.env.local` file, update:
-- `DB_NAME` (if used)
-- Any other brand-specific environment variables
+- Any brand-specific environment variables
 
 ### 5. README.md
 

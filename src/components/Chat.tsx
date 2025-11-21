@@ -258,14 +258,14 @@ export default function Chat({ initialMessage }: ChatProps) {
               <div
                 className={`max-w-[80%] ${
                   message.role === "user"
-                    ? "bg-[#1a2a2f] text-white rounded-2xl px-4 py-3 shadow-sm"
-                    : "text-white"
+                    ? "bg-primary text-primary-foreground rounded-2xl px-4 py-3 shadow-sm"
+                    : "text-foreground"
                 }`}
               >
                 {message.role === "user" ? (
                   <p className="whitespace-pre-wrap leading-relaxed text-sm">{message.content}</p>
                 ) : (
-                  <div className="text-sm prose prose-invert max-w-none">
+                  <div className="text-sm prose max-w-none">
                     <ReactMarkdown>{message.content}</ReactMarkdown>
                   </div>
                 )}
@@ -277,8 +277,8 @@ export default function Chat({ initialMessage }: ChatProps) {
         {/* Streaming message */}
         {streamingMessage && (
           <div className="flex justify-start mb-6">
-            <div className="text-white">
-              <div className="text-sm prose prose-invert max-w-none">
+            <div className="text-foreground">
+              <div className="text-sm prose max-w-none">
                 <ReactMarkdown>{streamingMessage}</ReactMarkdown>
                 <span className="inline animate-pulse ml-1">▋</span>
               </div>
@@ -288,11 +288,11 @@ export default function Chat({ initialMessage }: ChatProps) {
         
         {isLoading && !streamingMessage && (
           <div className="flex justify-start mb-6">
-            <div className="text-white">
+            <div className="text-foreground">
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="w-2 h-2 bg-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
               </div>
             </div>
           </div>
@@ -371,11 +371,11 @@ export default function Chat({ initialMessage }: ChatProps) {
         }
         
         :global(.prose ul li::marker) {
-          color: #ffffff !important;
+          color: var(--foreground) !important;
         }
         
         :global(.prose ol li::marker) {
-          color: #ffffff !important;
+          color: var(--foreground) !important;
         }
       `}</style>
     </div>

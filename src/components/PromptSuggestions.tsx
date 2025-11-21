@@ -17,14 +17,14 @@ export default function PromptSuggestions({ onSuggestionClick, visible }: Prompt
   return (
     <div className="mb-6">
       <div className="text-center mb-4">
-        <p className="text-white/70 text-sm">Try asking about:</p>
+        <p className="text-muted-foreground text-sm">Try asking about:</p>
       </div>
       <div className="flex flex-wrap justify-center gap-3 max-w-2xl mx-auto">
         {suggestions.map((suggestion, index) => (
           <button
             key={index}
             onClick={() => onSuggestionClick(suggestion)}
-            className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-full border border-white/20 transition-all duration-200 hover:scale-105 hover:border-white/40 cursor-pointer"
+            className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground text-sm rounded-full border border-border transition-all duration-200 hover:scale-105 hover:border-primary cursor-pointer"
             style={{ 
               animationDelay: `${index * 100}ms`,
               animation: `fadeInUp 0.6s ease-out ${index * 100}ms both`

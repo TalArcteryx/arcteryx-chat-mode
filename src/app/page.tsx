@@ -49,7 +49,7 @@ export default function Home() {
         {/* Logo */}
         <div className="mb-8">
           <Image
-            src="/logo.jpg"
+            src="/logo.svg"
             alt="Arc'teryx Logo"
             width={120}
             height={120}
@@ -59,9 +59,6 @@ export default function Home() {
 
         {/* Logo/Title */}
         <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold text-foreground mb-2 -mt-6">
-            Arc'teryx Chat
-          </h1>
           <p className="text-muted-foreground text-lg">
             your personal assistant
           </p>
@@ -88,7 +85,7 @@ export default function Home() {
         {/* Additional Info */}
         <div className="mt-12 text-center text-sm text-muted-foreground max-w-2xl">
           <p>
-            Arc'teryx Chat is your intelligent assistant, ready to help you with any questions or tasks.
+            Your intelligent assistant, ready to help you with any questions or tasks.
           </p>
         </div>
       </div>

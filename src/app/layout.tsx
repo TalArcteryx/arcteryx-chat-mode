@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Arc'teryx Chat",
+  title: "Chat Assistant",
   description: "Your intelligent chat assistant",
 };
 

@@ -8,7 +8,7 @@ export default function AdminPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
           <p className="text-muted-foreground mt-2">
-            Manage your Arc'teryx Chat application
+            Manage your application
           </p>
         </div>
 
