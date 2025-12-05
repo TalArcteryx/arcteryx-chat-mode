@@ -10,10 +10,17 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'images.arcteryx.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'cdn.sanity.io',
         pathname: '/**',
       },
     ],
+    // Increase image quality for better clarity
+    formats: ['image/avif', 'image/webp'],
   },
 };
 

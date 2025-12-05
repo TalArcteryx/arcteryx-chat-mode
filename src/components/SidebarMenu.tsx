@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageCircle, Search, Settings, User, Package, Gift, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { MessageCircle, Search, Settings, User, Package, Gift, HelpCircle, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslation } from "@/lib/translations";
 
@@ -34,6 +34,12 @@ export default function SidebarMenu({ isExpanded, onToggle }: SidebarMenuProps) 
       labelKey: "menu.account",
       icon: User,
       href: "/account",
+    },
+    {
+      id: "wishlist",
+      labelKey: "menu.wishlist",
+      icon: Heart,
+      href: "/wishlist",
     },
     {
       id: "tracking",

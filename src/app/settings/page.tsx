@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import SidebarMenu from "@/components/SidebarMenu";
-import { Settings, Bell, Globe, Moon, Shield } from "lucide-react";
+import { Settings, Bell, Globe, Moon, Shield, ArrowLeft } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslation } from "@/lib/translations";
 
@@ -22,6 +23,15 @@ export default function SettingsPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-4xl mx-auto">
+            {/* Back to Chat Button */}
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-sm font-medium">{getTranslation("nav.backToChat", languageCode)}</span>
+            </Link>
+            
             <div className="flex items-center gap-4 mb-8">
               <div className="p-3 bg-primary/10 rounded-lg">
                 <Settings className="w-8 h-8 text-primary" />

@@ -8,27 +8,11 @@ import ProductModal from "@/components/ProductModal";
 import CompleteYourLookProducts from "@/components/CompleteYourLookProducts";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
+import { useChat } from "@/contexts/ChatContext";
 import { getTranslation } from "@/lib/translations";
+import { BaseProduct } from "@/types/product";
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  currency: string;
-  images?: {
-    main?: string;
-    hover?: string;
-    colors?: Record<string, string>;
-  };
-  url?: string;
-  rating?: {
-    average?: string | null;
-    count?: number;
-  };
-  colors?: string[];
-  badges?: string[];
-}
+interface Product extends BaseProduct {}
 
 interface Message {
   role: "user" | "assistant";
@@ -50,24 +34,25 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
 export default function Chat({ initialMessage }: ChatProps) {
   const { languageCode } = useLanguage();
   const { items: cartItems, suggestedProducts } = useCart();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { messages, addMessage, setMessages } = useChat();
   const [genderPreference, setGenderPreference] = useState<"men" | "women" | null>(null);
   const prevCartItemsRef = useRef<string[]>([]);
   const prevSuggestedProductsRef = useRef<string[]>([]);
   const isInitialMountRef = useRef(true);
+  const hasInitializedRef = useRef(false);
 
-  // Initialize messages with translated initial message
+  // Initialize messages with translated initial message only if no messages exist
   useEffect(() => {
-    if (languageCode) {
-      setMessages([
-        {
-          id: generateId(),
-          role: "assistant",
-          content: getTranslation("chat.initialMessage", languageCode),
-        },
-      ]);
+    if (languageCode && messages.length === 0 && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      const initialMessage: Message = {
+        id: generateId(),
+        role: "assistant",
+        content: getTranslation("chat.initialMessage", languageCode),
+      };
+      setMessages([initialMessage]);
     }
-  }, [languageCode]);
+  }, [languageCode, messages.length, setMessages]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState("");
@@ -107,11 +92,11 @@ export default function Chat({ initialMessage }: ChatProps) {
         content: message,
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      addMessage(assistantMessage);
     }
 
     prevCartItemsRef.current = currentCartIds;
-  }, [cartItems, languageCode]);
+  }, [cartItems, languageCode, addMessage]);
 
   // Watch for suggested products and add "Complete Your Look" message
   useEffect(() => {
@@ -153,13 +138,13 @@ export default function Chat({ initialMessage }: ChatProps) {
           })),
         };
 
-        setMessages(prev => [...prev, assistantMessage]);
+        addMessage(assistantMessage);
         prevSuggestedProductsRef.current = suggestedProducts.map(p => p.id);
       }
     } else if (suggestedProducts.length === 0) {
       prevSuggestedProductsRef.current = [];
     }
-  }, [suggestedProducts, cartItems.length, languageCode]);
+  }, [suggestedProducts, cartItems.length, languageCode, addMessage]);
 
   const handleInitialMessage = useCallback(async (message: string) => {
     const userMessage: Message = {
@@ -168,7 +153,7 @@ export default function Chat({ initialMessage }: ChatProps) {
       content: message,
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    addMessage(userMessage);
     setIsLoading(true);
     setStreamingMessage("");
 
@@ -214,7 +199,6 @@ export default function Chat({ initialMessage }: ChatProps) {
             const data = line.slice(6);
             if (data === '[DONE]') {
               // Stream finished, add the complete message with products
-              console.log('📦 Final extracted products before adding message:', extractedProducts.length);
               // If products exist, only add message with products (no text content)
               if (extractedProducts.length > 0 && !productsAdded) {
                 const assistantMessage: Message = {
@@ -223,8 +207,7 @@ export default function Chat({ initialMessage }: ChatProps) {
                   content: "",
                   products: extractedProducts,
                 };
-                console.log('💬 Message created with products only (no text):', assistantMessage.products?.length || 0);
-                setMessages(prev => [...prev, assistantMessage]);
+                addMessage(assistantMessage);
                 productsAdded = true;
               } else if (accumulatedContent.trim() && !productsAdded) {
                 // Only add text message if no products and there's content
@@ -233,8 +216,7 @@ export default function Chat({ initialMessage }: ChatProps) {
                   role: "assistant",
                   content: accumulatedContent,
                 };
-                console.log('💬 Message created with text only (no products)');
-                setMessages(prev => [...prev, assistantMessage]);
+                addMessage(assistantMessage);
               }
               // Add a small delay before hiding streaming message for smoother transition
               setTimeout(() => setStreamingMessage(""), 100);
@@ -248,7 +230,6 @@ export default function Chat({ initialMessage }: ChatProps) {
               // If products are received, handle them IMMEDIATELY and skip ALL text content
               if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
                 extractedProducts = parsed.products;
-                console.log('✅ Products received during handleInitialMessage - IMMEDIATELY showing carousel, skipping chat response:', parsed.products.length, parsed.products.map((p: Product) => p.name));
                 // Immediately add products and stop streaming text completely
                 if (!productsAdded) {
                   const assistantMessage: Message = {
@@ -257,7 +238,7 @@ export default function Chat({ initialMessage }: ChatProps) {
                     content: "", // NO text content when products are shown
                     products: extractedProducts,
                   };
-                  setMessages(prev => [...prev, assistantMessage]);
+                  addMessage(assistantMessage);
                   productsAdded = true;
                   accumulatedContent = "";
                   setStreamingMessage(""); // Clear any streaming text immediately
@@ -291,7 +272,6 @@ export default function Chat({ initialMessage }: ChatProps) {
       }
       
       // Log final state
-      console.log('handleInitialMessage - Final products:', extractedProducts.length);
     } catch (error) {
       console.error("Error:", error);
       const errorMessage: Message = {
@@ -299,12 +279,12 @@ export default function Chat({ initialMessage }: ChatProps) {
         role: "assistant",
         content: "Sorry, I encountered an error. Please try again.",
       };
-      setMessages(prev => [...prev, errorMessage]);
+      addMessage(errorMessage);
     } finally {
       setIsLoading(false);
       setStreamingMessage("");
     }
-  }, [messages, languageCode, genderPreference]);
+  }, [messages, languageCode, genderPreference, addMessage]);
 
   // Auto-send initial message if provided (only once)
   useEffect(() => {
@@ -346,7 +326,7 @@ export default function Chat({ initialMessage }: ChatProps) {
       content: inputValue.trim(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    addMessage(userMessage);
     setInputValue("");
     setIsLoading(true);
     setStreamingMessage("");
@@ -399,7 +379,6 @@ export default function Chat({ initialMessage }: ChatProps) {
             const data = line.slice(6);
             if (data === '[DONE]') {
               // Stream finished, add the complete message with products
-              console.log('📦 Final extracted products before adding message:', extractedProducts.length);
               // If products exist, only add message with products (no text content)
               if (extractedProducts.length > 0 && !productsAdded) {
                 const assistantMessage: Message = {
@@ -408,8 +387,7 @@ export default function Chat({ initialMessage }: ChatProps) {
                   content: "",
                   products: extractedProducts,
                 };
-                console.log('💬 Message created with products only (no text):', assistantMessage.products?.length || 0);
-                setMessages(prev => [...prev, assistantMessage]);
+                addMessage(assistantMessage);
                 productsAdded = true;
               } else if (accumulatedContent.trim() && !productsAdded) {
                 // Only add text message if no products and there's content
@@ -418,8 +396,7 @@ export default function Chat({ initialMessage }: ChatProps) {
                   role: "assistant",
                   content: accumulatedContent,
                 };
-                console.log('💬 Message created with text only (no products)');
-                setMessages(prev => [...prev, assistantMessage]);
+                addMessage(assistantMessage);
               }
               // Add a small delay before hiding streaming message for smoother transition
               setTimeout(() => setStreamingMessage(""), 100);
@@ -433,7 +410,6 @@ export default function Chat({ initialMessage }: ChatProps) {
               // If products are received, handle them IMMEDIATELY and skip ALL text content
               if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
                 extractedProducts = parsed.products;
-                console.log('✅ Products received in stream - IMMEDIATELY showing carousel, skipping chat response:', parsed.products.length, parsed.products.map((p: Product) => p.name));
                 // Immediately add products and stop streaming text completely
                 if (!productsAdded) {
                   const assistantMessage: Message = {
@@ -442,7 +418,7 @@ export default function Chat({ initialMessage }: ChatProps) {
                     content: "", // NO text content when products are shown
                     products: extractedProducts,
                   };
-                  setMessages(prev => [...prev, assistantMessage]);
+                  addMessage(assistantMessage);
                   productsAdded = true;
                   accumulatedContent = "";
                   setStreamingMessage(""); // Clear any streaming text immediately
@@ -484,7 +460,7 @@ export default function Chat({ initialMessage }: ChatProps) {
         role: "assistant",
         content: "Sorry, I encountered an error. Please try again.",
       };
-      setMessages(prev => [...prev, errorMessage]);
+      addMessage(errorMessage);
       }
     } finally {
       setIsLoading(false);

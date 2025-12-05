@@ -3,27 +3,10 @@
 import Image from "next/image";
 import { Plus } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { BaseProduct } from "@/types/product";
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  currency: string;
-  images?: {
-    main?: string;
-    hover?: string;
-    colors?: Record<string, string>;
-  };
-  url?: string;
-  rating?: {
-    average?: string | null;
-    count?: number;
-  };
-  colors?: string[];
-  badges?: string[];
+interface Product extends BaseProduct {
   category?: string;
-  gender?: string;
 }
 
 interface CompleteYourLookProductsProps {
@@ -85,7 +68,19 @@ export default function CompleteYourLookProducts({ products, onProductClick }: C
           <button
             onClick={(e) => {
               e.stopPropagation();
-              addToCart(product);
+              // Ensure rating format matches CartContext expectations
+              const cartProduct = {
+                ...product,
+                rating: product.rating
+                  ? {
+                      average: typeof product.rating.average === 'number'
+                        ? product.rating.average.toString()
+                        : product.rating.average,
+                      count: product.rating.count,
+                    }
+                  : undefined,
+              };
+              addToCart(cartProduct);
             }}
             className="p-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 active:scale-95 transition-all flex-shrink-0 shadow-sm hover:shadow-md cursor-pointer"
             aria-label="Add to cart"
