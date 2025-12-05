@@ -5,6 +5,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { ChatProvider } from "@/contexts/ChatContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,19 +28,36 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <LanguageProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <ChatProvider>
-                {children}
-              </ChatProvider>
-            </WishlistProvider>
-          </CartProvider>
-        </LanguageProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme');
+                  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (theme === 'dark' || (!theme && systemPrefersDark)) {
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+        <ThemeProvider>
+          <LanguageProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <ChatProvider>
+                  {children}
+                </ChatProvider>
+              </WishlistProvider>
+            </CartProvider>
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

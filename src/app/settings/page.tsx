@@ -5,12 +5,13 @@ import Link from "next/link";
 import SidebarMenu from "@/components/SidebarMenu";
 import { Settings, Bell, Globe, Moon, Shield, ArrowLeft } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { getTranslation } from "@/lib/translations";
 
 export default function SettingsPage() {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, toggleTheme, isDark } = useTheme();
   const { languageCode } = useLanguage();
 
   return (
@@ -108,8 +109,8 @@ export default function SettingsPage() {
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={darkMode}
-                        onChange={(e) => setDarkMode(e.target.checked)}
+                        checked={isDark}
+                        onChange={toggleTheme}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>

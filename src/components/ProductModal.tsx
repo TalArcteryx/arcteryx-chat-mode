@@ -142,20 +142,20 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
       onClick={onClose}
     >
       <div
-        className="relative bg-white w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden flex flex-col md:flex-row"
+        className="relative bg-card dark:bg-card w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden flex flex-col md:flex-row"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="absolute top-4 right-4 z-20 p-2 hover:bg-muted dark:hover:bg-muted rounded-full transition-colors"
           aria-label="Close modal"
         >
-          <X className="w-6 h-6 text-gray-900" />
+          <X className="w-6 h-6 text-foreground" />
         </button>
 
         {/* Left Section - Product Image */}
-        <div className="relative w-full md:w-1/2 bg-gray-50 flex items-center justify-center min-h-[400px] md:min-h-[600px]">
+        <div className="relative w-full md:w-1/2 bg-muted dark:bg-muted/50 flex items-center justify-center min-h-[400px] md:min-h-[600px]">
           {displayImage ? (
             displayImage.includes('imgix.net') || displayImage.includes('arcteryx.com') ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -176,7 +176,7 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
               />
             )
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
               <div className="text-center">
                 <svg
                   className="w-24 h-24 mx-auto mb-4"
@@ -198,10 +198,10 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
         </div>
 
         {/* Right Section - Product Info */}
-        <div className="w-full md:w-1/2 bg-white p-6 md:p-8 flex flex-col overflow-y-auto">
+        <div className="w-full md:w-1/2 bg-card dark:bg-card p-6 md:p-8 flex flex-col overflow-y-auto">
           {/* Product Name */}
           <h1
-            className="uppercase text-left text-black mb-0"
+            className="uppercase text-left text-foreground mb-0"
             style={{
               fontFamily: 'var(--font-elan), "elan-itc-pro", sans-serif',
               fontSize: '1.625rem',
@@ -215,11 +215,11 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
           {/* Badges */}
           {product.badges && product.badges.length > 0 && (
             <div className="flex items-center gap-2 mt-2 mb-4">
-              <span className="w-px h-4 bg-gray-900"></span>
+              <span className="w-px h-4 bg-border"></span>
               {product.badges.map((badge, idx) => (
                 <span
                   key={idx}
-                  className="text-sm text-gray-900 font-normal"
+                  className="text-sm text-foreground font-normal"
                 >
                   {badge}
                 </span>
@@ -240,10 +240,10 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
                     <span
                       key={i}
                       className={`text-sm ${isFull
-                        ? 'text-yellow-400'
+                        ? 'text-yellow-400 dark:text-yellow-500'
                         : isHalf
-                          ? 'text-yellow-400'
-                          : 'text-gray-300'
+                          ? 'text-yellow-400 dark:text-yellow-500'
+                          : 'text-muted-foreground'
                         }`}
                     >
                       ★
@@ -252,30 +252,30 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
                 })}
               </div>
               {reviewCount > 0 && (
-                <span className="text-sm text-gray-600">
-                  ({reviewCount}) <span className="underline cursor-pointer hover:text-gray-900">Leave a review</span>
+                <span className="text-sm text-muted-foreground">
+                  ({reviewCount}) <span className="underline cursor-pointer hover:text-foreground">Leave a review</span>
                 </span>
               )}
             </div>
           )}
 
           {/* Description */}
-          <p className="text-gray-700 mb-6 leading-relaxed">
+          <p className="text-muted-foreground mb-6 leading-relaxed">
             {product.description}
           </p>
 
           {/* Price */}
           <div className="mb-4">
-            <span className="text-3xl font-bold text-gray-900">
+            <span className="text-3xl font-bold text-foreground">
               ${product.price.toFixed(2)}
             </span>
           </div>
 
           {/* Klarna Payment Plan */}
           <div className="mb-6">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               4 payments of ${klarnaPayment} with Klarna{' '}
-              <span className="underline cursor-pointer hover:text-gray-900">Learn more</span>
+              <span className="underline cursor-pointer hover:text-foreground">Learn more</span>
             </p>
           </div>
 
@@ -283,8 +283,8 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
           {product.colors && product.colors.length > 0 && (
             <div className="mb-6">
               <div className="mb-3">
-                <span className="text-sm font-medium text-gray-900">Colour: </span>
-                <span className="text-sm text-gray-700">{selectedColorName}</span>
+                <span className="text-sm font-medium text-foreground">Colour: </span>
+                <span className="text-sm text-muted-foreground">{selectedColorName}</span>
               </div>
               <div className="flex flex-wrap gap-3">
                 {product.colors.map((color, idx) => {
@@ -299,8 +299,8 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
                     >
                       <div
                         className={`w-12 h-12 border-2 transition-all ${isSelected
-                          ? 'border-gray-900'
-                          : 'border-gray-300 hover:border-gray-500'
+                          ? 'border-foreground'
+                          : 'border-border hover:border-foreground/50'
                           }`}
                         style={{ backgroundColor: colorHex }}
                         title={color}
@@ -333,13 +333,13 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
           </div>
 
           {/* Collapsible Sections */}
-          <div className="space-y-0 border-t border-gray-200 pt-4">
+          <div className="space-y-0 border-t border-border pt-4">
             {/* Delivery */}
             <button
               onClick={() => toggleSection('delivery')}
-              className="w-full flex items-center justify-between py-4 border-b border-gray-200 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-between py-4 border-b border-border hover:bg-muted dark:hover:bg-muted transition-colors"
             >
-              <span className="text-sm font-medium text-gray-900">Delivery</span>
+              <span className="text-sm font-medium text-foreground">Delivery</span>
               {expandedSections.delivery ? (
                 <ChevronUp className="w-5 h-5 text-gray-600" />
               ) : (
@@ -347,34 +347,34 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
               )}
             </button>
             {expandedSections.delivery && (
-              <div className="py-4 border-b border-gray-200">
-                <p className="text-sm text-gray-700">Free shipping & Free returns</p>
+              <div className="py-4 border-b border-border">
+                <p className="text-sm text-muted-foreground">Free shipping & Free returns</p>
               </div>
             )}
 
             {/* In-store availability */}
             <button
               onClick={() => toggleSection('instore')}
-              className="w-full flex items-center justify-between py-4 border-b border-gray-200 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-between py-4 border-b border-border hover:bg-muted dark:hover:bg-muted transition-colors"
             >
-              <span className="text-sm font-medium text-gray-900">In-store availability</span>
+              <span className="text-sm font-medium text-foreground">In-store availability</span>
               {expandedSections.instore ? (
-                <ChevronUp className="w-5 h-5 text-gray-600" />
+                <ChevronUp className="w-5 h-5 text-muted-foreground" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-gray-600" />
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
               )}
             </button>
             {expandedSections.instore && (
-              <div className="py-4 border-b border-gray-200">
+              <div className="py-4 border-b border-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <MapPin className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-900">Arc&apos;teryx Robson</span>
-                  <span className="flex items-center gap-1 text-sm text-green-600">
-                    <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Arc&apos;teryx Robson</span>
+                  <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+                    <span className="w-2 h-2 bg-green-600 dark:bg-green-400 rounded-full"></span>
                     In stock
                   </span>
                 </div>
-                <a href="#" className="text-sm text-gray-600 underline hover:text-gray-900">
+                <a href="#" className="text-sm text-muted-foreground underline hover:text-foreground">
                   Pickup information
                 </a>
               </div>
@@ -383,18 +383,18 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
             {/* Product details */}
             <button
               onClick={() => toggleSection('details')}
-              className="w-full flex items-center justify-between py-4 border-b border-gray-200 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-between py-4 border-b border-border hover:bg-muted dark:hover:bg-muted transition-colors"
             >
-              <span className="text-sm font-medium text-gray-900">Product details</span>
+              <span className="text-sm font-medium text-foreground">Product details</span>
               {expandedSections.details ? (
-                <ChevronUp className="w-5 h-5 text-gray-600" />
+                <ChevronUp className="w-5 h-5 text-muted-foreground" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-gray-600" />
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
               )}
             </button>
             {expandedSections.details && (
               <div className="py-4">
-                <p className="text-sm text-gray-700 leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {product.description}
                 </p>
               </div>

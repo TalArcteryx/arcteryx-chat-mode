@@ -128,7 +128,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onClick={() => onQuickView(product)}
         >
             {/* Image Area */}
-            <div className="relative aspect-square bg-gray-100 overflow-hidden mb-4" style={{ isolation: 'isolate' }}>
+            <div className="relative aspect-square bg-muted dark:bg-muted/50 overflow-hidden mb-4" style={{ isolation: 'isolate' }}>
 
                 {/* Wishlist Button */}
                 <button
@@ -136,10 +136,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         e.stopPropagation();
                         onToggleWishlist(product.id);
                     }}
-                    className="absolute top-4 right-4 z-20 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
+                    className="absolute top-4 right-4 z-20 p-2 bg-card/90 dark:bg-card/90 backdrop-blur-sm rounded-full hover:bg-card dark:hover:bg-card transition-colors shadow-sm"
                     title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
                 >
-                    <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-black text-black' : 'text-gray-900'}`} />
+                    <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-foreground text-foreground' : 'text-foreground/70'}`} />
                 </button>
 
                 {/* Main Image */}
@@ -182,7 +182,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         {product.badges.map((badge) => (
                             <span
                                 key={badge}
-                                className="bg-white border border-black text-[#1a1a1a] whitespace-nowrap cursor-pointer text-sm uppercase"
+                                className="bg-card dark:bg-card border border-border dark:border-border text-foreground dark:text-foreground whitespace-nowrap cursor-pointer text-sm uppercase"
                                 style={{
                                     borderRadius: '3px',
                                     padding: '0.25rem 0.625rem',
@@ -199,7 +199,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <div className={`absolute left-4 right-4 transition-all duration-300 transform z-20 ${isHovered ? 'opacity-100 translate-y-0 bottom-16' : 'opacity-0 translate-y-4 bottom-4 pointer-events-none'}`}>
                     <button
                         onClick={handleAddToCart}
-                        className="w-full bg-white text-black py-3 text-xs font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors shadow-lg flex items-center justify-center gap-2"
+                        className="w-full bg-card dark:bg-card text-foreground dark:text-foreground py-3 text-xs font-bold uppercase tracking-widest hover:bg-muted dark:hover:bg-muted transition-colors shadow-lg flex items-center justify-center gap-2"
                     >
                         Add to Cart - ${product.price.toLocaleString()}
                     </button>
@@ -220,8 +220,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                     setSelectedColor(color);
                                 }}
                                 className={`relative w-16 h-16 rounded border overflow-hidden transition-all ${isSelected
-                                    ? 'border-gray-600'
-                                    : 'border-gray-300 hover:border-gray-400'
+                                    ? 'border-foreground dark:border-foreground'
+                                    : 'border-border dark:border-border hover:border-foreground/50 dark:hover:border-foreground/50'
                                     }`}
                                 title={color.name}
                                 aria-label={`Select ${color.name} color`}
@@ -247,7 +247,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         );
                     })}
                     {product.colors.length > 4 && (
-                        <div className="w-16 h-16 flex items-center justify-center text-xs text-gray-500 border border-gray-300 rounded">
+                        <div className="w-16 h-16 flex items-center justify-center text-xs text-muted-foreground border border-border rounded">
                             +{product.colors.length - 4}
                         </div>
                     )}
@@ -257,7 +257,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {/* Content Area */}
             <div className="flex flex-col flex-grow p-4 space-y-2">
                 {/* Product Name - Bold and larger */}
-                <h3 className="font-bold text-base text-gray-900 leading-tight">
+                <h3 className="font-bold text-base text-foreground leading-tight">
                     {product.name}
                 </h3>
 
@@ -274,10 +274,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                     <span
                                         key={i}
                                         className={`text-sm ${isFull
-                                            ? 'text-red-500'
+                                            ? 'text-red-500 dark:text-red-400'
                                             : isHalf
-                                                ? 'text-red-500'
-                                                : 'text-gray-300'
+                                                ? 'text-red-500 dark:text-red-400'
+                                                : 'text-muted-foreground'
                                             }`}
                                     >
                                         ★
@@ -286,8 +286,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                             })}
                         </div>
                         {product.reviewCount > 0 && (
-                            <span className="text-xs text-gray-600">
-                                ({product.reviewCount}) <span className="underline cursor-pointer">Leave a review</span>
+                            <span className="text-xs text-muted-foreground">
+                                ({product.reviewCount}) <span className="underline cursor-pointer hover:text-foreground">Leave a review</span>
                             </span>
                         )}
                     </div>
@@ -295,14 +295,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                 {/* Description */}
                 {product.description && (
-                    <p className="text-sm text-gray-700 leading-snug">
+                    <p className="text-sm text-muted-foreground leading-snug">
                         {product.description}
                     </p>
                 )}
 
                 {/* Price */}
                 <div className="pt-1">
-                    <span className="font-bold text-lg text-gray-900">
+                    <span className="font-bold text-lg text-foreground">
                         ${product.price.toFixed(2)}
                     </span>
                 </div>
