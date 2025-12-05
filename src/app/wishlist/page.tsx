@@ -11,6 +11,7 @@ import { getTranslation } from "@/lib/translations";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useCart } from "@/contexts/CartContext";
 import { ProductCard } from "@/components/ProductCard";
+import ProductModal from "@/components/ProductModal";
 import { transformToProductCard } from "@/lib/productTransform";
 import mensProductsData from "@/data/mens-products.json";
 import womensProductsData from "@/data/womens-products.json";
@@ -24,6 +25,8 @@ interface Product extends BaseProduct {
 export default function WishlistPage() {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<BaseProduct | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { languageCode } = useLanguage();
   const { wishlistedIds, toggleWishlist, isWishlisted } = useWishlist();
   const { addToCart, toggleCart, getTotalItems } = useCart();
@@ -70,8 +73,17 @@ export default function WishlistPage() {
   };
 
   const handleQuickView = (product: ProductCardType) => {
-    // TODO: Implement quick view modal or navigation to product detail page
-    // For now, this is a placeholder for future functionality
+    // Convert ProductCardType back to BaseProduct format for the modal
+    const simpleProduct = allProducts.find(p => p.id === product.id);
+    if (simpleProduct) {
+      setSelectedProduct(simpleProduct);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
   };
 
   return (
@@ -207,6 +219,13 @@ export default function WishlistPage() {
         {/* Cart Sidebar */}
         <CartSidebar />
       </div>
+
+      {/* Product Modal */}
+      <ProductModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
