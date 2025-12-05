@@ -1,0 +1,383 @@
+{
+  "metadata": {
+    "source": "test-faq.html",
+    "extractedAt": "2025-12-05T07:37:15.578Z",
+    "totalFAQs": 32,
+    "categories": [
+      "Orders",
+      "Product",
+      "Payment",
+      "Company",
+      "Privacy",
+      "About Arc'teryx RESALE"
+    ]
+  },
+  "faqs": [
+    {
+      "id": "faq-1",
+      "category": "Orders",
+      "question": "Do you offer exchanges?",
+      "answer": "We do not offer exchanges for purchases on arcteryx.com. To find your way into a new product, you may return and repurchase your item(s) online or at your nearest Arc'teryx Brand Store. Standard return policies apply.\n\nVisit our Returns & Refunds page to start the return process."
+    },
+    {
+      "id": "faq-2",
+      "category": "Orders",
+      "question": "Why was my order cancelled?",
+      "answer": "Cancelling an order is the last thing we want to do, but it may be necessary due to some of these common reasons.\n\n*Arc’teryx does not support Bulk Purchasing or Freight Forwarding. Orders outside of these policies may be cancelled without notification.\n\nIn the event your order is cancelled, you will not be charged, and any charges pending will be cancelled as well.\n\n• The item is out of stock\n• Discrepancy in billing information\n• Policy breach*"
+    },
+    {
+      "id": "faq-3",
+      "category": "Orders",
+      "question": "Do you offer price adjustments?",
+      "answer": "Online and in-store purchases are not eligible for price adjustments."
+    },
+    {
+      "id": "faq-4",
+      "category": "Orders",
+      "question": "Do I need to set up an account to place an order?",
+      "answer": "An account is not required to place an order. You can check-out as a Guest, but setting up an account provides easy access to your order, faster returns, as well as quicker check-out next time."
+    },
+    {
+      "id": "faq-5",
+      "category": "Orders",
+      "question": "Can I cancel an order once the order has been placed?",
+      "answer": "We cannot cancel or alter your order once it is placed. If you wish to initiate a return, please wait until you receive the shipment then head to our Returns and Refunds page."
+    },
+    {
+      "id": "faq-6",
+      "category": "Orders",
+      "question": "Can I add items to an existing order?",
+      "answer": "Items cannot be added to an existing order that has been confirmed. Your order is confirmed once you have completed the checkout stage and sent a confirmation number. If you would like to order additional items, you are welcome to place a new order online."
+    },
+    {
+      "id": "faq-7",
+      "category": "Product",
+      "question": "Where can I buy Arc'teryx products?",
+      "answer": "Arc'teryx products are available directly through our website or from specialty outdoor clothing and equipment retailers around the globe – including our own brand stores.\n\nOur product pages will let you know if the item is an online exclusive or if it’s available at a nearby Arc’teryx brand store. You can also use our Find a Store feature to see the closest location where the item is sold."
+    },
+    {
+      "id": "faq-8",
+      "category": "Product",
+      "question": "How can I get an Arc'teryx sticker?",
+      "answer": "Arc’teryx is committed to reducing our impact on the planet, setting ambitious Science-Based Targets and working towards a circular economy. This means reducing waste and use of excess materials. To this end, we recently made the decision to remove Arc’teryx stickers from online orders, in line with our climate impact goals and ongoing commitment to sustainability."
+    },
+    {
+      "id": "faq-9",
+      "category": "Product",
+      "question": "How can I find out which size will fit me best?",
+      "answer": "General sizing information for Arc'teryx products is included on our Sizing Charts page."
+    },
+    {
+      "id": "faq-10",
+      "category": "Product",
+      "question": "Can I carry electronic items in my GORE-TEX garment?",
+      "answer": "Although our WaterTight™ zippers are highly water resistant, they are not fully waterproof. Pockets constructed using waterproof fabrics may collect water if they are opened or accessed during wet or snowy conditions.\n\nWe strongly recommend that you keep any fragile or electronic devices in a sealable plastic bag inside an internal pocket. We do not recommend keeping items in your pockets that may be damaged by moisture. Arc'teryx is not responsible for any damage to electronic devices or personal equipment."
+    },
+    {
+      "id": "faq-11",
+      "category": "Product",
+      "question": "How can I get access to the Arc’teryx Professional Use products?",
+      "answer": "The Arc’teryx Professional Program provides specialized gear designed for individuals involved in professions dedicated to outdoor recreation safety, mentorship, conservation, and access.\n\nTo find out more, please visit our Pro Program page."
+    },
+    {
+      "id": "faq-12",
+      "category": "Product",
+      "question": "How do I recognize a counterfeit?",
+      "answer": "In order to benefit from the best performance of an Arc’teryx product ensure that your purchase is authentic. Visit our Counterfeit Information page for details on identifying features that sets Arc’teryx apart."
+    },
+    {
+      "id": "faq-13",
+      "category": "Product",
+      "question": "What is PFAS?",
+      "answer": "PFAS stands for per- and Polyfluoroalkyl Substances. PFAS is the umbrella term for a family of chemicals that have historically been used for a wide variety of purposes, including waterproofing, in the outdoor industry."
+    },
+    {
+      "id": "faq-14",
+      "category": "Product",
+      "question": "What are we doing to phase PFAS out of our product line?",
+      "answer": "Arc’teryx is committed to ensuring our products comply with all applicable laws and regulations. We’re working to remove intentionally added PFAS from the entire Arc’teryx product line by the end of 2025, transitioning to our newest GORE-TEX material with an ePE membrane that keeps you dry without PFAS. Learn more."
+    },
+    {
+      "id": "faq-15",
+      "category": "Product",
+      "question": "What are the performance differences between PFAS-free and PFAS-containing articles?",
+      "answer": "The PFAS-free, new ePE membrane technology is lighter and thinner, but just as strong and durable as the materials we used before.\n\nBoth versions effectively repel water, however, the new FC0 DWR doesn’t withstand oil contamination quite as effectively – this means that PFAS-free products need a little more care to perform at their best. If you notice the fabric wetting out faster than you’d like, simply wash and dry your garment to bring the DWR back to its full power. View product care."
+    },
+    {
+      "id": "faq-16",
+      "category": "Product",
+      "question": "How can I trade in my PFAS-containing garment?",
+      "answer": "If your product falls outside of our return policy, we would be delighted to provide you with a 20% credit via our RESALE program for use toward a new purchase."
+    },
+    {
+      "id": "faq-17",
+      "category": "Payment",
+      "question": "Which payment methods do you accept?",
+      "answer": "We accept Visa, Mastercard, PayPal, Apple Pay, Google Pay, Klarna and Gift Cards*.\n\n*Gift cards are accepted only in CAD, USD, Euro, and GBP currency countries, excluding CHF, NOK, SEK, DKK, and PLZ.\n\nArc'teryx only accepts credit card payments from the countries listed below. If your credit card is registered to a country not listed below, please use PayPal as an alternative payment method.\n\n• Australia\n• Austria\n• Belgium\n• Canada\n• China\n• Czech Rep\n• Denmark\n• Finland\n• France\n• Germany\n• Ireland\n• Italy\n• Japan\n• New Zealand\n• Norway\n• Spain\n• Sweden\n• Switzerland\n• The Netherlands\n• United Kingdom\n• USA"
+    },
+    {
+      "id": "faq-18",
+      "category": "Payment",
+      "question": "Why was my payment declined?",
+      "answer": "If you've received a message at our checkout saying your credit card information is unable to be verified, you may need to:\n\n• Make sure you wait at least two business days before attempting to reorder again.\n• Make sure your order is not outside of our bulk purchasing and freight forwarding policies.\n• Reach out to your credit card provider to investigate a potential issue with your card.\n• Check if your credit card is registered to the country you are ordering from and shipping the order to. See the full list of countries we ship to here.\n• Confirm the card information has been entered correctly.\n• You have exceeded the quantity limit on a special collection."
+    },
+    {
+      "id": "faq-19",
+      "category": "Payment",
+      "question": "What are pending, pre-authorized and posted transactions?",
+      "answer": "A pending or pre-authorized transaction is a recent transaction that you've made with your credit card that has not yet been fully processed. If the pending transaction does not get processed and charged to your account, it will usually be removed by your provider in up to 10 business days. Once the charge has been posted to your account, it becomes a posted transaction."
+    },
+    {
+      "id": "faq-20",
+      "category": "Payment",
+      "question": "Can I have a tax exemption applied to my order?",
+      "answer": "Tax exemptions are not available online through arcteryx.com, outlet.arcteryx.com, or resale.arcteryx.ca at this time.In-store tax exemptions are available for specific community members in certain locations, providing an inclusive and accessible pathway to purchase high-quality gear.First Nations individual tax exemptions are available in BC (Park Royal), Ontario (all Arc’teryx Brand Stores & Factory Outlets), and Quebec (Montreal, Royal Mount and Arc'teryx Quartier DIX30)."
+    },
+    {
+      "id": "faq-21",
+      "category": "Payment",
+      "question": "How much tax will I have to pay?",
+      "answer": "All applicable taxes will be applied based on the country or region that your order is being shipped to."
+    },
+    {
+      "id": "faq-22",
+      "category": "Payment",
+      "question": "What is Klarna?",
+      "answer": "Klarna is an installment payment platform. Shoppers can split eligible purchases into interest free payments with no fees, if paid on time.\n\nWith Klarna you can easily pay for your orders immediately by bank transfer, direct debit or credit card. Please note that billing and shipping countries must match to display Klarna as a payment option.\n\nTo return an order purchased through Klarna, head to our Returns & Refunds page.\n\nCreate an account and learn more about Klarna here."
+    },
+    {
+      "id": "faq-23",
+      "category": "Company",
+      "question": "What is the Arc'teryx Bulk Buying and Reselling policy?",
+      "answer": "Arc'teryx does not support Bulk purchases or Reselling. Product purchased at Arc'teryx Brand Stores, Outlets, Partner stores, and on Arc'teryx Websites is intended for personal, non-commercial use. Arc'teryx reserves the right to limit the quantities of items purchased per person, per household, or per order. These restrictions may be applicable to purchases made by the same person(s), household group, credit card or other forms of payment. Arc'teryx reserves the right to limit the quantities of items returned per person, per household, or per order. These restrictions may be applicable to returns made by the same person(s), household, group, credit card or other forms of payment.\n\nWe define 'bulk purchase' as an order in excess of $3000 or containing more than 4 items of the same product or repeat purchase pattern. However, Arc'teryx reserves the right to evaluate individual orders at its discretion, including those that may exceed or go above these limits due to repeat purchase patterns or other indicators that suggest more than normal personal use. We define 'reselling' as a purchase intended to be sold to another person or business.\n\nOur brand reputation is built on quality and craftsmanship, making sure you have the best product to perform in the harshest conditions. We strive for all our customers to receive expert honest advice from our trained staff, and as our customer you should expect the same from your location of purchase.\n\nWe are aware some unlicensed resellers operate in various locations around the globe. We are working hard with various governmental agencies to shut them down. These unauthorized resellers or grey market resellers not only risk selling fake or counterfeit product, they may put you at risk if the product fails in extreme conditions. In addition, resellers create an unfair marketplace and jeopardizes our relationship with our global partners. Individuals or companies who engage in unauthorized reselling of Arc'teryx product risk legal action for unauthorized use our trademarks, copyrighted materials, and/or other intellectual property.\n\nArc'teryx is not able to honor warranty claims or provide repair services on product deemed to be fake or counterfeit acquired through unauthorized resellers."
+    },
+    {
+      "id": "faq-24",
+      "category": "Company",
+      "question": "How does Arc'teryx approach issues of social and environmental responsibility?",
+      "answer": "Arc'teryx is part of the Amer Sports Group, a global collection of technically-advanced apparel and equipment brands. Arc'teryx and its factories strive to meet or exceed standards of social and environmental responsibility as outlined by our parent company.\n\nLearn more about our Environmental Policy at Arc'teryx, and the Responsibility Commitments from our parent company Amer Sports."
+    },
+    {
+      "id": "faq-25",
+      "category": "Company",
+      "question": "How can I verify if an email from Arc'teryx is legitimate?",
+      "answer": "Official communications from Arc'teryx will always come from a verified email address ending in @arcteryx.com. Please contact us if you have been affected by unauthorized communications. Thank you for helping us maintain a safe and secure community."
+    },
+    {
+      "id": "faq-26",
+      "category": "Privacy",
+      "question": "Is my personal information kept private?",
+      "answer": "We respect your privacy. Arc'teryx will never sell, trade, rent or loan your personal information to any other organization. \"Personal information\" is information about an identifiable individual as described in applicable privacy legislation.\n\nWe take steps to ensure we meet the privacy principles and requirements for personal information under Canadian law. The purpose of our Privacy Policy is to inform our guests how we collect, use, and disclose personal information in our custody or control.\n\nFor more information, please visit our Privacy Policy page."
+    },
+    {
+      "id": "faq-27",
+      "category": "Privacy",
+      "question": "What are cookies? Should I be worried about them?",
+      "answer": "A cookie is a piece of text stored on a user's computer by their web browser used for authentication, and for storing site preferences and shopping cart contents. We employ \"cookies\" (a small text file that a website can use to identify your computer) or similar technology that provides additional functionality to our website and helps us analyze website usage more accurately.\n\nCookies allow for a personalized experience when you visit our website. Our web server may automatically recognize your registered user's domain name and email address, or recognize you as a return visitor to our site.\n\nCookies also record session information such as items that you add to your shopping cart. You can set your web browser to disable cookies but if you do, some features of our website may not function normally.\n\nPlease see our Privacy Policy link on our website for more information."
+    },
+    {
+      "id": "faq-28",
+      "category": "About Arc'teryx RESALE",
+      "question": "What is Arc'teryx RESALE?",
+      "answer": "Arc'teryx RESALE (formerly known as ReGEAR) is our used gear platform, where you're able to trade in your fully functional Arc'teryx gear to be restored to our high standards and made ready for more time outside, in new hands. Through RESALE, your gear finds a second life, extending its journey, reducing waste, and supporting our broader ReBIRD™ initiative for circularity and impact reduction. You may still see occasional mentions of ReGEAR™ as we transition, but know it’s the same commitment to quality, performance, and a lighter footprint."
+    },
+    {
+      "id": "faq-29",
+      "category": "Privacy",
+      "question": "How does the program work?",
+      "answer": "In exchange for your fully functioning used gear, we will give you a gift card worth 20% of the original value that your product was listed for.\n\nWe also have some gear on the site that has been professionally cleaned and repaired in an attempt to extend the life of as many products as possible."
+    },
+    {
+      "id": "faq-30",
+      "category": "Privacy",
+      "question": "Why does Arc'teryx sell used gear?",
+      "answer": "Our gear is built to last, and sometimes our products outlast our guests need for it. When we can keep those products in circulation through resale, we reduce our impact by keeping that gear in the field, which moves us closer to a circular economy."
+    },
+    {
+      "id": "faq-31",
+      "category": "About Arc'teryx RESALE",
+      "question": "Where can I buy Arc'teryx RESALE items?",
+      "answer": "Currently, RESALE is only available for shipping to the US & Canada. To see what's in stock and place an order, visit our online store. As the program grows we look forward to expanding to new regions, and to sell this out of our stores."
+    },
+    {
+      "id": "faq-32",
+      "category": "About Arc'teryx RESALE",
+      "question": "Is Arc'teryx RESALE covered by a warranty?",
+      "answer": "Arc'teryx is proud of the quality and performance of all our products. Every Arc'teryx RESALE purchase is covered by the Arc'teryx Limited Warranty. If you believe there is a manufacturing issue within the practical product lifespan of your item, visit our Customer Support Centre and start a Product Service Request."
+    }
+  ],
+  "faqsByCategory": {
+    "Orders": [
+      {
+        "id": "faq-1",
+        "question": "Do you offer exchanges?",
+        "answer": "We do not offer exchanges for purchases on arcteryx.com. To find your way into a new product, you may return and repurchase your item(s) online or at your nearest Arc'teryx Brand Store. Standard return policies apply.\n\nVisit our Returns & Refunds page to start the return process."
+      },
+      {
+        "id": "faq-2",
+        "question": "Why was my order cancelled?",
+        "answer": "Cancelling an order is the last thing we want to do, but it may be necessary due to some of these common reasons.\n\n*Arc’teryx does not support Bulk Purchasing or Freight Forwarding. Orders outside of these policies may be cancelled without notification.\n\nIn the event your order is cancelled, you will not be charged, and any charges pending will be cancelled as well.\n\n• The item is out of stock\n• Discrepancy in billing information\n• Policy breach*"
+      },
+      {
+        "id": "faq-3",
+        "question": "Do you offer price adjustments?",
+        "answer": "Online and in-store purchases are not eligible for price adjustments."
+      },
+      {
+        "id": "faq-4",
+        "question": "Do I need to set up an account to place an order?",
+        "answer": "An account is not required to place an order. You can check-out as a Guest, but setting up an account provides easy access to your order, faster returns, as well as quicker check-out next time."
+      },
+      {
+        "id": "faq-5",
+        "question": "Can I cancel an order once the order has been placed?",
+        "answer": "We cannot cancel or alter your order once it is placed. If you wish to initiate a return, please wait until you receive the shipment then head to our Returns and Refunds page."
+      },
+      {
+        "id": "faq-6",
+        "question": "Can I add items to an existing order?",
+        "answer": "Items cannot be added to an existing order that has been confirmed. Your order is confirmed once you have completed the checkout stage and sent a confirmation number. If you would like to order additional items, you are welcome to place a new order online."
+      }
+    ],
+    "Product": [
+      {
+        "id": "faq-7",
+        "question": "Where can I buy Arc'teryx products?",
+        "answer": "Arc'teryx products are available directly through our website or from specialty outdoor clothing and equipment retailers around the globe – including our own brand stores.\n\nOur product pages will let you know if the item is an online exclusive or if it’s available at a nearby Arc’teryx brand store. You can also use our Find a Store feature to see the closest location where the item is sold."
+      },
+      {
+        "id": "faq-8",
+        "question": "How can I get an Arc'teryx sticker?",
+        "answer": "Arc’teryx is committed to reducing our impact on the planet, setting ambitious Science-Based Targets and working towards a circular economy. This means reducing waste and use of excess materials. To this end, we recently made the decision to remove Arc’teryx stickers from online orders, in line with our climate impact goals and ongoing commitment to sustainability."
+      },
+      {
+        "id": "faq-9",
+        "question": "How can I find out which size will fit me best?",
+        "answer": "General sizing information for Arc'teryx products is included on our Sizing Charts page."
+      },
+      {
+        "id": "faq-10",
+        "question": "Can I carry electronic items in my GORE-TEX garment?",
+        "answer": "Although our WaterTight™ zippers are highly water resistant, they are not fully waterproof. Pockets constructed using waterproof fabrics may collect water if they are opened or accessed during wet or snowy conditions.\n\nWe strongly recommend that you keep any fragile or electronic devices in a sealable plastic bag inside an internal pocket. We do not recommend keeping items in your pockets that may be damaged by moisture. Arc'teryx is not responsible for any damage to electronic devices or personal equipment."
+      },
+      {
+        "id": "faq-11",
+        "question": "How can I get access to the Arc’teryx Professional Use products?",
+        "answer": "The Arc’teryx Professional Program provides specialized gear designed for individuals involved in professions dedicated to outdoor recreation safety, mentorship, conservation, and access.\n\nTo find out more, please visit our Pro Program page."
+      },
+      {
+        "id": "faq-12",
+        "question": "How do I recognize a counterfeit?",
+        "answer": "In order to benefit from the best performance of an Arc’teryx product ensure that your purchase is authentic. Visit our Counterfeit Information page for details on identifying features that sets Arc’teryx apart."
+      },
+      {
+        "id": "faq-13",
+        "question": "What is PFAS?",
+        "answer": "PFAS stands for per- and Polyfluoroalkyl Substances. PFAS is the umbrella term for a family of chemicals that have historically been used for a wide variety of purposes, including waterproofing, in the outdoor industry."
+      },
+      {
+        "id": "faq-14",
+        "question": "What are we doing to phase PFAS out of our product line?",
+        "answer": "Arc’teryx is committed to ensuring our products comply with all applicable laws and regulations. We’re working to remove intentionally added PFAS from the entire Arc’teryx product line by the end of 2025, transitioning to our newest GORE-TEX material with an ePE membrane that keeps you dry without PFAS. Learn more."
+      },
+      {
+        "id": "faq-15",
+        "question": "What are the performance differences between PFAS-free and PFAS-containing articles?",
+        "answer": "The PFAS-free, new ePE membrane technology is lighter and thinner, but just as strong and durable as the materials we used before.\n\nBoth versions effectively repel water, however, the new FC0 DWR doesn’t withstand oil contamination quite as effectively – this means that PFAS-free products need a little more care to perform at their best. If you notice the fabric wetting out faster than you’d like, simply wash and dry your garment to bring the DWR back to its full power. View product care."
+      },
+      {
+        "id": "faq-16",
+        "question": "How can I trade in my PFAS-containing garment?",
+        "answer": "If your product falls outside of our return policy, we would be delighted to provide you with a 20% credit via our RESALE program for use toward a new purchase."
+      }
+    ],
+    "Payment": [
+      {
+        "id": "faq-17",
+        "question": "Which payment methods do you accept?",
+        "answer": "We accept Visa, Mastercard, PayPal, Apple Pay, Google Pay, Klarna and Gift Cards*.\n\n*Gift cards are accepted only in CAD, USD, Euro, and GBP currency countries, excluding CHF, NOK, SEK, DKK, and PLZ.\n\nArc'teryx only accepts credit card payments from the countries listed below. If your credit card is registered to a country not listed below, please use PayPal as an alternative payment method.\n\n• Australia\n• Austria\n• Belgium\n• Canada\n• China\n• Czech Rep\n• Denmark\n• Finland\n• France\n• Germany\n• Ireland\n• Italy\n• Japan\n• New Zealand\n• Norway\n• Spain\n• Sweden\n• Switzerland\n• The Netherlands\n• United Kingdom\n• USA"
+      },
+      {
+        "id": "faq-18",
+        "question": "Why was my payment declined?",
+        "answer": "If you've received a message at our checkout saying your credit card information is unable to be verified, you may need to:\n\n• Make sure you wait at least two business days before attempting to reorder again.\n• Make sure your order is not outside of our bulk purchasing and freight forwarding policies.\n• Reach out to your credit card provider to investigate a potential issue with your card.\n• Check if your credit card is registered to the country you are ordering from and shipping the order to. See the full list of countries we ship to here.\n• Confirm the card information has been entered correctly.\n• You have exceeded the quantity limit on a special collection."
+      },
+      {
+        "id": "faq-19",
+        "question": "What are pending, pre-authorized and posted transactions?",
+        "answer": "A pending or pre-authorized transaction is a recent transaction that you've made with your credit card that has not yet been fully processed. If the pending transaction does not get processed and charged to your account, it will usually be removed by your provider in up to 10 business days. Once the charge has been posted to your account, it becomes a posted transaction."
+      },
+      {
+        "id": "faq-20",
+        "question": "Can I have a tax exemption applied to my order?",
+        "answer": "Tax exemptions are not available online through arcteryx.com, outlet.arcteryx.com, or resale.arcteryx.ca at this time.In-store tax exemptions are available for specific community members in certain locations, providing an inclusive and accessible pathway to purchase high-quality gear.First Nations individual tax exemptions are available in BC (Park Royal), Ontario (all Arc’teryx Brand Stores & Factory Outlets), and Quebec (Montreal, Royal Mount and Arc'teryx Quartier DIX30)."
+      },
+      {
+        "id": "faq-21",
+        "question": "How much tax will I have to pay?",
+        "answer": "All applicable taxes will be applied based on the country or region that your order is being shipped to."
+      },
+      {
+        "id": "faq-22",
+        "question": "What is Klarna?",
+        "answer": "Klarna is an installment payment platform. Shoppers can split eligible purchases into interest free payments with no fees, if paid on time.\n\nWith Klarna you can easily pay for your orders immediately by bank transfer, direct debit or credit card. Please note that billing and shipping countries must match to display Klarna as a payment option.\n\nTo return an order purchased through Klarna, head to our Returns & Refunds page.\n\nCreate an account and learn more about Klarna here."
+      }
+    ],
+    "Company": [
+      {
+        "id": "faq-23",
+        "question": "What is the Arc'teryx Bulk Buying and Reselling policy?",
+        "answer": "Arc'teryx does not support Bulk purchases or Reselling. Product purchased at Arc'teryx Brand Stores, Outlets, Partner stores, and on Arc'teryx Websites is intended for personal, non-commercial use. Arc'teryx reserves the right to limit the quantities of items purchased per person, per household, or per order. These restrictions may be applicable to purchases made by the same person(s), household group, credit card or other forms of payment. Arc'teryx reserves the right to limit the quantities of items returned per person, per household, or per order. These restrictions may be applicable to returns made by the same person(s), household, group, credit card or other forms of payment.\n\nWe define 'bulk purchase' as an order in excess of $3000 or containing more than 4 items of the same product or repeat purchase pattern. However, Arc'teryx reserves the right to evaluate individual orders at its discretion, including those that may exceed or go above these limits due to repeat purchase patterns or other indicators that suggest more than normal personal use. We define 'reselling' as a purchase intended to be sold to another person or business.\n\nOur brand reputation is built on quality and craftsmanship, making sure you have the best product to perform in the harshest conditions. We strive for all our customers to receive expert honest advice from our trained staff, and as our customer you should expect the same from your location of purchase.\n\nWe are aware some unlicensed resellers operate in various locations around the globe. We are working hard with various governmental agencies to shut them down. These unauthorized resellers or grey market resellers not only risk selling fake or counterfeit product, they may put you at risk if the product fails in extreme conditions. In addition, resellers create an unfair marketplace and jeopardizes our relationship with our global partners. Individuals or companies who engage in unauthorized reselling of Arc'teryx product risk legal action for unauthorized use our trademarks, copyrighted materials, and/or other intellectual property.\n\nArc'teryx is not able to honor warranty claims or provide repair services on product deemed to be fake or counterfeit acquired through unauthorized resellers."
+      },
+      {
+        "id": "faq-24",
+        "question": "How does Arc'teryx approach issues of social and environmental responsibility?",
+        "answer": "Arc'teryx is part of the Amer Sports Group, a global collection of technically-advanced apparel and equipment brands. Arc'teryx and its factories strive to meet or exceed standards of social and environmental responsibility as outlined by our parent company.\n\nLearn more about our Environmental Policy at Arc'teryx, and the Responsibility Commitments from our parent company Amer Sports."
+      },
+      {
+        "id": "faq-25",
+        "question": "How can I verify if an email from Arc'teryx is legitimate?",
+        "answer": "Official communications from Arc'teryx will always come from a verified email address ending in @arcteryx.com. Please contact us if you have been affected by unauthorized communications. Thank you for helping us maintain a safe and secure community."
+      }
+    ],
+    "Privacy": [
+      {
+        "id": "faq-26",
+        "question": "Is my personal information kept private?",
+        "answer": "We respect your privacy. Arc'teryx will never sell, trade, rent or loan your personal information to any other organization. \"Personal information\" is information about an identifiable individual as described in applicable privacy legislation.\n\nWe take steps to ensure we meet the privacy principles and requirements for personal information under Canadian law. The purpose of our Privacy Policy is to inform our guests how we collect, use, and disclose personal information in our custody or control.\n\nFor more information, please visit our Privacy Policy page."
+      },
+      {
+        "id": "faq-27",
+        "question": "What are cookies? Should I be worried about them?",
+        "answer": "A cookie is a piece of text stored on a user's computer by their web browser used for authentication, and for storing site preferences and shopping cart contents. We employ \"cookies\" (a small text file that a website can use to identify your computer) or similar technology that provides additional functionality to our website and helps us analyze website usage more accurately.\n\nCookies allow for a personalized experience when you visit our website. Our web server may automatically recognize your registered user's domain name and email address, or recognize you as a return visitor to our site.\n\nCookies also record session information such as items that you add to your shopping cart. You can set your web browser to disable cookies but if you do, some features of our website may not function normally.\n\nPlease see our Privacy Policy link on our website for more information."
+      },
+      {
+        "id": "faq-29",
+        "question": "How does the program work?",
+        "answer": "In exchange for your fully functioning used gear, we will give you a gift card worth 20% of the original value that your product was listed for.\n\nWe also have some gear on the site that has been professionally cleaned and repaired in an attempt to extend the life of as many products as possible."
+      },
+      {
+        "id": "faq-30",
+        "question": "Why does Arc'teryx sell used gear?",
+        "answer": "Our gear is built to last, and sometimes our products outlast our guests need for it. When we can keep those products in circulation through resale, we reduce our impact by keeping that gear in the field, which moves us closer to a circular economy."
+      }
+    ],
+    "About Arc'teryx RESALE": [
+      {
+        "id": "faq-28",
+        "question": "What is Arc'teryx RESALE?",
+        "answer": "Arc'teryx RESALE (formerly known as ReGEAR) is our used gear platform, where you're able to trade in your fully functional Arc'teryx gear to be restored to our high standards and made ready for more time outside, in new hands. Through RESALE, your gear finds a second life, extending its journey, reducing waste, and supporting our broader ReBIRD™ initiative for circularity and impact reduction. You may still see occasional mentions of ReGEAR™ as we transition, but know it’s the same commitment to quality, performance, and a lighter footprint."
+      },
+      {
+        "id": "faq-31",
+        "question": "Where can I buy Arc'teryx RESALE items?",
+        "answer": "Currently, RESALE is only available for shipping to the US & Canada. To see what's in stock and place an order, visit our online store. As the program grows we look forward to expanding to new regions, and to sell this out of our stores."
+      },
+      {
+        "id": "faq-32",
+        "question": "Is Arc'teryx RESALE covered by a warranty?",
+        "answer": "Arc'teryx is proud of the quality and performance of all our products. Every Arc'teryx RESALE purchase is covered by the Arc'teryx Limited Warranty. If you believe there is a manufacturing issue within the practical product lifespan of your item, visit our Customer Support Centre and start a Product Service Request."
+      }
+    ]
+  }
+}

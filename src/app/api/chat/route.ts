@@ -1,13 +1,14 @@
-import { OpenAI } from 'openai';
 import { NextRequest, NextResponse } from 'next/server';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
-});
+import { classifyIntent } from './agents/router';
+import { handleProductRequest } from './agents/productAgent';
+import { handleFAQRequest } from './agents/faqAgent';
+import { handleGeneralRequest } from './agents/generalAgent';
+import { detectGenderPreference, isProductRequest, isGenderOnlyMessage, GenderPreference } from './utils/genderDetector';
+import { extractProductsFromQuery } from './utils/productExtractor';
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages } = await request.json();
+    const { messages, languageCode = 'en', genderPreference } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -16,34 +17,132 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Add system message to instruct AI behavior
-    const systemMessage = {
-      role: 'system',
-      content: 'You are a real estate assistant. Provide brief, actionable responses. Use bullet points or numbered lists when possible. Keep responses under 100 words. Be direct and avoid unnecessary explanations. Focus on practical steps, key facts, or clear answers. If asked for analysis, give the most important 2-3 points only.'
-    };
+    // Get the last user message
+    const lastUserMessage = messages
+      .filter((m: { role: string }) => m.role === 'user')
+      .pop();
+    const lastUserMessageText = lastUserMessage?.content || '';
+    
+    // Detect gender preference
+    const currentGenderPreference = detectGenderPreference(
+      lastUserMessageText,
+      genderPreference as GenderPreference
+    );
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [systemMessage, ...messages],
-      max_tokens: 200,
-      temperature: 0.7,
-      stream: true,
-    });
+    // Check if there's a product request in conversation history
+    const allUserMessages = messages
+      .filter((m: { role: string }) => m.role === 'user')
+      .map((m: { content: string }) => m.content?.toLowerCase() || '');
+    
+    const hasProductRequestInHistory = allUserMessages.length > 1 && 
+      allUserMessages.slice(0, -1).some(msg => {
+        const categoryKeywords = [
+          'jacket', 'jackets', 'shell', 'coat', 'pant', 'pants',
+          'shoe', 'shoes', 'boot', 'boots', 'footwear', 'clothing',
+          'clothes', 'apparel', 'accessories', 'packs', 'backpack'
+        ];
+        return isProductRequest(msg) || categoryKeywords.some(kw => msg.includes(kw));
+      });
 
-    const stream = new ReadableStream({
+    // Check if we can extract products directly (before routing)
+    const isGenderOnlyMsg = isGenderOnlyMessage(lastUserMessageText);
+    const shouldTryDirectExtraction = 
+      (isProductRequest(lastUserMessageText) || (isGenderOnlyMsg && hasProductRequestInHistory)) &&
+      currentGenderPreference !== null;
+
+    if (shouldTryDirectExtraction) {
+      const conversationHistory = allUserMessages.slice(0, -1);
+      const directProducts = extractProductsFromQuery({
+        query: lastUserMessageText,
+        genderPreference: currentGenderPreference,
+        conversationHistory,
+      });
+
+      if (directProducts.length > 0) {
+        console.log(`✅ Direct product extraction: ${directProducts.length} products`);
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          async start(controller) {
+            if (currentGenderPreference !== genderPreference) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ genderPreference: currentGenderPreference })}\n\n`));
+            }
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ products: directProducts })}\n\n`));
+            controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+            controller.close();
+          },
+        });
+
+        return new Response(stream, {
+          headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        });
+      }
+    }
+
+    // Classify intent using router
+    const routerResult = await classifyIntent(lastUserMessageText, messages);
+    console.log(`🎯 Intent classified: ${routerResult.intent} (confidence: ${routerResult.confidence})`);
+
+    // Route to appropriate agent
+    let responseStream: ReadableStream;
+
+    switch (routerResult.intent) {
+      case 'product':
+        const productResponse = await handleProductRequest({
+          messages,
+          languageCode,
+          genderPreference: genderPreference as GenderPreference,
+          currentGenderPreference,
+        });
+        responseStream = productResponse.stream;
+        break;
+
+      case 'faq':
+        responseStream = await handleFAQRequest({
+          messages,
+          languageCode,
+        });
+        break;
+
+      case 'general':
+      default:
+        responseStream = await handleGeneralRequest({
+          messages,
+          languageCode,
+        });
+        break;
+    }
+
+    // Wrap stream to include gender preference update if needed
+    const wrappedStream = new ReadableStream({
       async start(controller) {
-        for await (const chunk of completion) {
-          const content = chunk.choices[0]?.delta?.content || '';
-          if (content) {
-            controller.enqueue(`data: ${JSON.stringify({ content })}\n\n`);
-          }
+        // Send gender preference update if changed
+        if (currentGenderPreference !== genderPreference) {
+          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ genderPreference: currentGenderPreference })}\n\n`));
         }
-        controller.enqueue(`data: [DONE]\n\n`);
-        controller.close();
+
+        // Forward the agent's stream
+        const reader = responseStream.getReader();
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            // Forward chunks as-is (they're already in SSE format)
+            controller.enqueue(value);
+          }
+        } finally {
+          reader.releaseLock();
+          controller.close();
+        }
       },
     });
 
-    return new Response(stream, {
+    return new Response(wrappedStream, {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
         'Cache-Control': 'no-cache',
@@ -51,7 +150,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('OpenAI API error:', error);
+    console.error('Chat API error:', error);
     return NextResponse.json(
       { error: 'Failed to generate response' },
       { status: 500 }

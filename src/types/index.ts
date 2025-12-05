@@ -4,5 +4,5 @@ export * from './user';
 export * from './chat';
 export * from './api';
 export * from './system';
-export * from './real-estate';
+export * from './product';
 export * from './business';

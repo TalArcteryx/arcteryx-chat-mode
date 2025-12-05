@@ -5,7 +5,7 @@ export interface User extends BaseDocument {
   email: string;
   name: string;
   avatar?: string;
-  role: 'user' | 'admin' | 'realtor' | 'broker';
+  role: 'user' | 'admin' | 'expert' | 'ambassador';
   subscription: {
     plan: 'free' | 'basic' | 'premium' | 'enterprise';
     startDate: Date;
@@ -26,11 +26,11 @@ export interface User extends BaseDocument {
   lastActive: Date;
   isActive: boolean;
   
-  // Realtor specific fields
-  realtorLicense?: string;
-  brokerageId?: string;
-  specialties?: string[];
+  // Expert/Ambassador specific fields
+  expertise?: string[]; // e.g., ['climbing', 'skiing', 'trail_running']
+  certifications?: string[];
   yearsExperience?: number;
+  ambassadorTier?: 'bronze' | 'silver' | 'gold' | 'platinum';
 }
 
 // Subscription Collection
@@ -46,5 +46,5 @@ export interface Subscription extends BaseDocument {
   cancelledAt?: Date;
   trialStart?: Date;
   trialEnd?: Date;
-  metadata: any;
+  metadata: Record<string, unknown>;
 }

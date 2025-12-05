@@ -21,7 +21,7 @@ export interface Analytics extends BaseDocument {
 export interface Template extends BaseDocument {
   name: string;
   type: 'email' | 'sms' | 'letter';
-  category: 'lead_nurturing' | 'closing' | 'follow_up' | 'marketing';
+  category: 'product_recommendation' | 'order_followup' | 'abandoned_cart' | 'post_purchase' | 'marketing';
   
   subject?: string;
   content: string;
@@ -37,5 +37,5 @@ export interface Template extends BaseDocument {
   isActive: boolean;
   isPublic: boolean;
   createdBy: string;
-  brokerageId?: string;
+  collectionId?: string; // Product collection or campaign
 }

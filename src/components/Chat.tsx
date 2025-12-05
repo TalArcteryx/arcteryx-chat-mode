@@ -1,13 +1,40 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import ChatInput from "@/components/ui/chat-input";
 import ReactMarkdown from "react-markdown";
+import ProductCarousel from "@/components/ProductCarousel";
+import ProductModal from "@/components/ProductModal";
+import CompleteYourLookProducts from "@/components/CompleteYourLookProducts";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useCart } from "@/contexts/CartContext";
+import { getTranslation } from "@/lib/translations";
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  images?: {
+    main?: string;
+    hover?: string;
+    colors?: Record<string, string>;
+  };
+  url?: string;
+  rating?: {
+    average?: string | null;
+    count?: number;
+  };
+  colors?: string[];
+  badges?: string[];
+}
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   id: string;
+  products?: Product[];
 }
 
 interface ChatProps {
@@ -21,39 +48,120 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export default function Chat({ initialMessage }: ChatProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: generateId(),
-      role: "assistant",
-      content: "Hello! I'm your AI assistant powered by GPT-4o mini. How can I help you today?",
-    },
-  ]);
+  const { languageCode } = useLanguage();
+  const { items: cartItems, suggestedProducts } = useCart();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [genderPreference, setGenderPreference] = useState<"men" | "women" | null>(null);
+  const prevCartItemsRef = useRef<string[]>([]);
+  const prevSuggestedProductsRef = useRef<string[]>([]);
+  const isInitialMountRef = useRef(true);
+
+  // Initialize messages with translated initial message
+  useEffect(() => {
+    if (languageCode) {
+      setMessages([
+        {
+          id: generateId(),
+          role: "assistant",
+          content: getTranslation("chat.initialMessage", languageCode),
+        },
+      ]);
+    }
+  }, [languageCode]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState("");
-  const [hasUserMessage, setHasUserMessage] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-send initial message if provided (only once)
+  // Watch for cart additions and add chat message
   useEffect(() => {
-    if (initialMessage && messages.length === 1) {
-      // Add a small delay to ensure the component is fully mounted
-      const timer = setTimeout(() => {
-        handleInitialMessage(initialMessage);
-      }, 100);
-      return () => clearTimeout(timer);
+    // Skip on initial mount to avoid showing messages for items already in cart
+    if (isInitialMountRef.current) {
+      prevCartItemsRef.current = cartItems.map(item => item.id);
+      isInitialMountRef.current = false;
+      return;
     }
-  }, []); // Only run once on mount
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+    if (cartItems.length === 0) {
+      prevCartItemsRef.current = [];
+      return;
+    }
 
+    const currentCartIds = cartItems.map(item => item.id);
+    const prevCartIds = prevCartItemsRef.current;
+
+    // Find newly added items
+    const newItems = cartItems.filter(item => !prevCartIds.includes(item.id));
+    
+    if (newItems.length > 0) {
+      // Show message for any newly added item
+      const newestItem = newItems[newItems.length - 1];
+      const message = getTranslation("chat.itemAddedToCart", languageCode || 'en')
+        .replace('{productName}', newestItem.name);
+      
+      const assistantMessage: Message = {
+        id: generateId(),
+        role: "assistant",
+        content: message,
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    }
+
+    prevCartItemsRef.current = currentCartIds;
+  }, [cartItems, languageCode]);
+
+  // Watch for suggested products and add "Complete Your Look" message
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, streamingMessage]);
+    // Skip on initial mount
+    if (isInitialMountRef.current) {
+      prevSuggestedProductsRef.current = suggestedProducts.map(p => p.id);
+      return;
+    }
 
-  const handleInitialMessage = async (message: string) => {
+    // Only show if we have suggested products and cart has items
+    if (suggestedProducts.length > 0 && cartItems.length > 0) {
+      const currentSuggestedIds = suggestedProducts.map(p => p.id).sort();
+      const prevSuggestedIds = prevSuggestedProductsRef.current.sort();
+      
+      // Check if suggested products changed (new suggestions appeared or changed)
+      const idsChanged = currentSuggestedIds.length !== prevSuggestedIds.length ||
+                         currentSuggestedIds.some((id, idx) => id !== prevSuggestedIds[idx]);
+      
+      if (idsChanged) {
+        const message = getTranslation("chat.completeYourLook", languageCode || 'en');
+        
+        const assistantMessage: Message = {
+          id: generateId(),
+          role: "assistant",
+          content: message,
+          products: suggestedProducts.map(p => ({
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            currency: p.currency,
+            images: p.images,
+            url: p.url,
+            rating: p.rating,
+            colors: p.colors,
+            badges: p.badges,
+            category: p.category,
+            gender: p.gender,
+          })),
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+        prevSuggestedProductsRef.current = suggestedProducts.map(p => p.id);
+      }
+    } else if (suggestedProducts.length === 0) {
+      prevSuggestedProductsRef.current = [];
+    }
+  }, [suggestedProducts, cartItems.length, languageCode]);
+
+  const handleInitialMessage = useCallback(async (message: string) => {
     const userMessage: Message = {
       id: generateId(),
       role: "user",
@@ -72,6 +180,8 @@ export default function Chat({ initialMessage }: ChatProps) {
         },
         body: JSON.stringify({
           messages: [{ role: "assistant", content: messages[0].content }, userMessage],
+          languageCode: languageCode,
+          genderPreference: genderPreference,
         }),
       });
 
@@ -86,25 +196,46 @@ export default function Chat({ initialMessage }: ChatProps) {
 
       const decoder = new TextDecoder();
       let accumulatedContent = "";
+      let extractedProducts: Product[] = [];
+      let productsAdded = false;
+      let shouldStopStreaming = false;
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done || shouldStopStreaming) break;
 
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n');
 
         for (const line of lines) {
+          if (shouldStopStreaming) break;
+          
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
             if (data === '[DONE]') {
-              // Stream finished, add the complete message
-              const assistantMessage: Message = {
-                id: generateId(),
-                role: "assistant",
-                content: accumulatedContent,
-              };
-              setMessages(prev => [...prev, assistantMessage]);
+              // Stream finished, add the complete message with products
+              console.log('📦 Final extracted products before adding message:', extractedProducts.length);
+              // If products exist, only add message with products (no text content)
+              if (extractedProducts.length > 0 && !productsAdded) {
+                const assistantMessage: Message = {
+                  id: generateId(),
+                  role: "assistant",
+                  content: "",
+                  products: extractedProducts,
+                };
+                console.log('💬 Message created with products only (no text):', assistantMessage.products?.length || 0);
+                setMessages(prev => [...prev, assistantMessage]);
+                productsAdded = true;
+              } else if (accumulatedContent.trim() && !productsAdded) {
+                // Only add text message if no products and there's content
+                const assistantMessage: Message = {
+                  id: generateId(),
+                  role: "assistant",
+                  content: accumulatedContent,
+                };
+                console.log('💬 Message created with text only (no products)');
+                setMessages(prev => [...prev, assistantMessage]);
+              }
               // Add a small delay before hiding streaming message for smoother transition
               setTimeout(() => setStreamingMessage(""), 100);
               break;
@@ -112,18 +243,55 @@ export default function Chat({ initialMessage }: ChatProps) {
 
             try {
               const parsed = JSON.parse(data);
-              if (parsed.content) {
+              
+              // CRITICAL: Check for products FIRST, before processing any text content
+              // If products are received, handle them IMMEDIATELY and skip ALL text content
+              if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
+                extractedProducts = parsed.products;
+                console.log('✅ Products received during handleInitialMessage - IMMEDIATELY showing carousel, skipping chat response:', parsed.products.length, parsed.products.map((p: Product) => p.name));
+                // Immediately add products and stop streaming text completely
+                if (!productsAdded) {
+                  const assistantMessage: Message = {
+                    id: generateId(),
+                    role: "assistant",
+                    content: "", // NO text content when products are shown
+                    products: extractedProducts,
+                  };
+                  setMessages(prev => [...prev, assistantMessage]);
+                  productsAdded = true;
+                  accumulatedContent = "";
+                  setStreamingMessage(""); // Clear any streaming text immediately
+                  setIsLoading(false); // Stop loading immediately when products are shown
+                  // Stop reading the stream - we have products, no need for text
+                  shouldStopStreaming = true;
+                  reader.cancel().catch(() => {}); // Cancel stream, ignore errors
+                  break;
+                }
+                // Skip processing content when products are present
+                continue;
+              }
+              
+              // Only process text content if no products have been added
+              // CRITICAL: If products were found, we should have already exited above
+              if (!productsAdded && !shouldStopStreaming && parsed.content) {
                 accumulatedContent += parsed.content;
                 setStreamingMessage(accumulatedContent);
                 // Add a small delay to make streaming more visible
                 await delay(50); // 50ms delay between chunks
               }
-            } catch (e) {
+              
+              if (parsed.genderPreference) {
+                setGenderPreference(parsed.genderPreference);
+              }
+            } catch {
               // Ignore parsing errors for incomplete JSON
             }
           }
         }
       }
+      
+      // Log final state
+      console.log('handleInitialMessage - Final products:', extractedProducts.length);
     } catch (error) {
       console.error("Error:", error);
       const errorMessage: Message = {
@@ -136,6 +304,36 @@ export default function Chat({ initialMessage }: ChatProps) {
       setIsLoading(false);
       setStreamingMessage("");
     }
+  }, [messages, languageCode, genderPreference]);
+
+  // Auto-send initial message if provided (only once)
+  useEffect(() => {
+    if (initialMessage && messages.length === 1) {
+      // Add a small delay to ensure the component is fully mounted
+      const timer = setTimeout(() => {
+        handleInitialMessage(initialMessage);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [initialMessage, messages.length, handleInitialMessage]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, streamingMessage]);
+
+  const handleProductClick = (product: Product) => {
+    // Open modal with product details
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -153,13 +351,12 @@ export default function Chat({ initialMessage }: ChatProps) {
     setIsLoading(true);
     setStreamingMessage("");
     
-    // Set hasUserMessage to true immediately to hide suggestions
-    setHasUserMessage(true);
-    
     // Trigger smooth scroll to bottom when sending
     setTimeout(() => {
       scrollToBottom();
     }, 100);
+
+    let productsAdded = false; // Declare outside try block for error handling
 
     try {
       const response = await fetch("/api/chat", {
@@ -169,6 +366,8 @@ export default function Chat({ initialMessage }: ChatProps) {
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
+          languageCode: languageCode,
+          genderPreference: genderPreference,
         }),
       });
 
@@ -183,25 +382,45 @@ export default function Chat({ initialMessage }: ChatProps) {
 
       const decoder = new TextDecoder();
       let accumulatedContent = "";
+      let extractedProducts: Product[] = [];
+      let shouldStopStreaming = false;
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done || shouldStopStreaming) break;
 
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n');
 
         for (const line of lines) {
+          if (shouldStopStreaming) break;
+          
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
             if (data === '[DONE]') {
-              // Stream finished, add the complete message
-              const assistantMessage: Message = {
-                id: generateId(),
-                role: "assistant",
-                content: accumulatedContent,
-              };
-              setMessages(prev => [...prev, assistantMessage]);
+              // Stream finished, add the complete message with products
+              console.log('📦 Final extracted products before adding message:', extractedProducts.length);
+              // If products exist, only add message with products (no text content)
+              if (extractedProducts.length > 0 && !productsAdded) {
+                const assistantMessage: Message = {
+                  id: generateId(),
+                  role: "assistant",
+                  content: "",
+                  products: extractedProducts,
+                };
+                console.log('💬 Message created with products only (no text):', assistantMessage.products?.length || 0);
+                setMessages(prev => [...prev, assistantMessage]);
+                productsAdded = true;
+              } else if (accumulatedContent.trim() && !productsAdded) {
+                // Only add text message if no products and there's content
+                const assistantMessage: Message = {
+                  id: generateId(),
+                  role: "assistant",
+                  content: accumulatedContent,
+                };
+                console.log('💬 Message created with text only (no products)');
+                setMessages(prev => [...prev, assistantMessage]);
+              }
               // Add a small delay before hiding streaming message for smoother transition
               setTimeout(() => setStreamingMessage(""), 100);
               break;
@@ -209,13 +428,48 @@ export default function Chat({ initialMessage }: ChatProps) {
 
             try {
               const parsed = JSON.parse(data);
-              if (parsed.content) {
+              
+              // CRITICAL: Check for products FIRST, before processing any text content
+              // If products are received, handle them IMMEDIATELY and skip ALL text content
+              if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
+                extractedProducts = parsed.products;
+                console.log('✅ Products received in stream - IMMEDIATELY showing carousel, skipping chat response:', parsed.products.length, parsed.products.map((p: Product) => p.name));
+                // Immediately add products and stop streaming text completely
+                if (!productsAdded) {
+                  const assistantMessage: Message = {
+                    id: generateId(),
+                    role: "assistant",
+                    content: "", // NO text content when products are shown
+                    products: extractedProducts,
+                  };
+                  setMessages(prev => [...prev, assistantMessage]);
+                  productsAdded = true;
+                  accumulatedContent = "";
+                  setStreamingMessage(""); // Clear any streaming text immediately
+                  setIsLoading(false); // Stop loading immediately when products are shown
+                  // Stop reading the stream - we have products, no need for text
+                  shouldStopStreaming = true;
+                  reader.cancel().catch(() => {}); // Cancel stream, ignore errors
+                  break;
+                }
+                // Skip processing content when products are present
+                continue;
+              }
+              
+              // Only process text content if no products have been added
+              // CRITICAL: If products were found, we should have already exited above
+              if (!productsAdded && !shouldStopStreaming && parsed.content) {
+                // Only accumulate content if we haven't found products
                 accumulatedContent += parsed.content;
                 setStreamingMessage(accumulatedContent);
                 // Add a small delay to make streaming more visible
                 await delay(50); // 50ms delay between chunks
               }
-            } catch (e) {
+              
+              if (parsed.genderPreference) {
+                setGenderPreference(parsed.genderPreference);
+              }
+            } catch {
               // Ignore parsing errors for incomplete JSON
             }
           }
@@ -223,12 +477,15 @@ export default function Chat({ initialMessage }: ChatProps) {
       }
     } catch (error) {
       console.error("Error:", error);
+      // Only show error if products weren't already shown
+      if (!productsAdded) {
       const errorMessage: Message = {
         id: generateId(),
         role: "assistant",
         content: "Sorry, I encountered an error. Please try again.",
       };
       setMessages(prev => [...prev, errorMessage]);
+      }
     } finally {
       setIsLoading(false);
       setStreamingMessage("");
@@ -242,33 +499,77 @@ export default function Chat({ initialMessage }: ChatProps) {
         {/* Chat content wrapper - centered with max width matching input */}
         <div className="max-w-3xl mx-auto w-full">
         {messages.map((message, index) => (
-          <div
-            key={message.id}
-            className={`flex ${
-              message.role === "user" ? "justify-end" : "justify-start"
-            } ${message.role === "user" ? "opacity-0 animate-fade-in-up" : ""} mb-6`}
-            style={{ 
-              ...(message.role === "user" && {
-                animationDelay: `${index * 100}ms`,
-                animation: `fadeInUp 0.6s ease-out ${index * 100}ms forwards`
-              })
-            }}
-          >
+          <div key={message.id} className="w-full">
             {message.role === "assistant" && index === 0 ? null : (
-              <div
-                className={`max-w-[80%] ${
-                  message.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-2xl px-4 py-3 shadow-sm"
-                    : "text-foreground"
-                }`}
-              >
-                {message.role === "user" ? (
-                  <p className="whitespace-pre-wrap leading-relaxed text-sm">{message.content}</p>
-                ) : (
-                  <div className="text-sm prose max-w-none">
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
+              // Only show message bubble if there's content (skip if only products)
+              message.content.trim() && (
+                <div
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  } ${message.role === "user" ? "opacity-0 animate-fade-in-up" : ""} mb-6`}
+                  style={{ 
+                    ...(message.role === "user" && {
+                      animationDelay: `${index * 100}ms`,
+                      animation: `fadeInUp 0.6s ease-out ${index * 100}ms forwards`
+                    })
+                  }}
+                >
+                  <div
+                    className={`max-w-[80%] ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-2xl px-4 py-3 shadow-sm"
+                        : "text-foreground"
+                    }`}
+                  >
+                    {message.role === "user" ? (
+                      <p className="whitespace-pre-wrap leading-relaxed text-sm">{message.content}</p>
+                    ) : (
+                      <div className="text-sm prose max-w-none">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
+              )
+            )}
+            {/* Product display for assistant messages - outside the message bubble */}
+            {message.role === "assistant" && message.products && message.products.length > 0 && (
+              <div className="w-full mb-6">
+                {/* Check if this is a "Complete Your Look" message by checking message content */}
+                {(() => {
+                  // Only show CompleteYourLookProducts if message content explicitly contains "complete your look" text
+                  // For all other product messages (including empty content), show ProductCarousel
+                  const messageContentLower = (message.content || '').toLowerCase().trim();
+                  
+                  // Check for "complete your look" in multiple languages
+                  const completeYourLookPatterns = [
+                    'complete your look',
+                    'completez votre look',
+                    'completa tu look',
+                    'completa il tuo look',
+                    'vervollständigen sie ihr outfit',
+                    'ルックを完成',
+                    '完善您的造型',
+                    '룩을 완성'
+                  ];
+                  
+                  const isCompleteYourLook = messageContentLower.length > 0 && 
+                    completeYourLookPatterns.some(pattern => messageContentLower.includes(pattern));
+                  
+                  // If message content is empty or doesn't match "complete your look", show carousel
+                  // This ensures ALL product results show carousel by default
+                  return isCompleteYourLook ? (
+                    <CompleteYourLookProducts 
+                      products={message.products} 
+                      onProductClick={handleProductClick}
+                    />
+                  ) : (
+                <ProductCarousel 
+                  products={message.products} 
+                  onProductClick={handleProductClick}
+                />
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -378,6 +679,13 @@ export default function Chat({ initialMessage }: ChatProps) {
           color: var(--foreground) !important;
         }
       `}</style>
+
+      {/* Product Modal */}
+      <ProductModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }

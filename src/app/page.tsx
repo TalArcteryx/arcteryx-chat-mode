@@ -2,13 +2,26 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { ShoppingBag, SquarePen } from "lucide-react";
 import Chat from "@/components/Chat";
 import ChatInput from "@/components/ui/chat-input";
 import PromptSuggestions from "@/components/PromptSuggestions";
+import SuggestionCard from "@/components/SuggestionCard";
+import CartSidebar from "@/components/CartSidebar";
+import SidebarMenu from "@/components/SidebarMenu";
+import LanguageCountryModal from "@/components/LanguageCountryModal";
+import { useCart } from "@/contexts/CartContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslation } from "@/lib/translations";
+import { getCountryFlag } from "@/lib/countryFlags";
 
-export default function Home() {
+function HomeContent() {
   const [isChatStarted, setIsChatStarted] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [isMenuExpanded, setIsMenuExpanded] = useState(false);
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+  const { toggleCart, getTotalItems } = useCart();
+  const { country, language, languageCode, hasSelectedPreferences } = useLanguage();
 
   const handleStartChat = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,71 +37,189 @@ export default function Home() {
 
   if (isChatStarted) {
     return (
-      <div className="min-h-screen bg-background">
-        {/* Header with New Chat button */}
-        <div className="p-4 border-b border-border">
-          <div className="max-w-3xl mx-auto">
+      <div className="h-screen bg-background flex overflow-hidden">
+        {/* Sidebar */}
+        <SidebarMenu 
+          isExpanded={isMenuExpanded} 
+          onToggle={() => setIsMenuExpanded(!isMenuExpanded)} 
+        />
+        
+        {/* Main Content Area with Cart Sidebar */}
+        <div className="flex-1 flex min-w-0">
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Header with New Chat button, Country/Language, and Cart */}
+          <div className="p-4 border-b border-border flex items-center justify-between">
             <button 
               onClick={handleNewChat}
-              className="text-foreground hover:bg-muted px-4 py-2 rounded-md transition-colors"
+              className="flex items-center gap-2 text-foreground hover:bg-muted px-4 py-2 rounded-md transition-colors"
             >
-              ← New Chat
+              <SquarePen className="w-4 h-4" />
+              {getTranslation("chat.newChat", languageCode)}
             </button>
+            <div className="flex items-center gap-4">
+              {country && language && (
+                <button
+                  onClick={() => setIsLanguageModalOpen(true)}
+                  className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors cursor-pointer"
+                >
+                  <span className="text-lg">{getCountryFlag(country)}</span>
+                  <span>{country}</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span>{language}</span>
+                </button>
+              )}
+              <button
+                onClick={toggleCart}
+                className="relative p-2 rounded-md hover:bg-muted transition-colors"
+                aria-label={getTranslation("nav.cart", languageCode)}
+              >
+                <ShoppingBag className="w-6 h-6" />
+                {getTotalItems() > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {getTotalItems()}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
+          
+          <Chat initialMessage={inputValue} />
         </div>
         
-        <Chat initialMessage={inputValue} />
+          {/* Cart Sidebar - within main area, slides from right */}
+        <CartSidebar />
+        </div>
+        
+        <LanguageCountryModal 
+          isOpen={isLanguageModalOpen || !hasSelectedPreferences}
+          onClose={() => setIsLanguageModalOpen(false)}
+        />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex overflow-hidden">
+      {/* Sidebar */}
+      <SidebarMenu 
+        isExpanded={isMenuExpanded} 
+        onToggle={() => setIsMenuExpanded(!isMenuExpanded)} 
+      />
+      
+      {/* Main Content Area with Cart Sidebar */}
+      <div className="flex-1 flex min-w-0">
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
-        {/* Logo */}
-        <div className="mb-8">
-          <Image
-            src="/logo.svg"
-            alt="Arc'teryx Logo"
-            width={120}
-            height={120}
-            priority
-          />
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header with Country/Language and Cart */}
+        <div className="p-4 border-b border-border flex items-center justify-end gap-4">
+          {country && language && (
+            <button
+              onClick={() => setIsLanguageModalOpen(true)}
+              className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors cursor-pointer"
+            >
+              <span className="text-lg">{getCountryFlag(country)}</span>
+              <span>{country}</span>
+              <span className="text-muted-foreground">•</span>
+              <span>{language}</span>
+            </button>
+          )}
+          <button
+            onClick={toggleCart}
+            className="relative p-2 rounded-md hover:bg-muted transition-colors"
+            aria-label={getTranslation("nav.cart", languageCode)}
+          >
+            <ShoppingBag className="w-6 h-6" />
+            {getTotalItems() > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {getTotalItems()}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Logo/Title */}
-        <div className="text-center mb-6">
-          <p className="text-muted-foreground text-lg">
-            your personal assistant
-          </p>
-        </div>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col items-center justify-center px-4">
+          {/* Logo */}
+          <div className="mb-8">
+            <Image
+              src="/logo.svg"
+              alt="Arc'teryx Logo"
+              width={120}
+              height={120}
+              priority
+            />
+          </div>
 
-        {/* Large Input Area */}
-        <div className="w-full max-w-3xl">
-          <PromptSuggestions
-            onSuggestionClick={(suggestion) => {
-              setInputValue(suggestion);
-              // Auto-start chat with the suggestion
-              setIsChatStarted(true);
-            }}
-            visible={true}
-          />
-          <ChatInput
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onSubmit={handleStartChat}
-            placeholder="Ask anything..."
-          />
-        </div>
+          {/* Logo/Title */}
+          <div className="text-center mb-6">
+            <p className="text-muted-foreground text-lg">
+              {getTranslation("home.subtitle", languageCode)}
+            </p>
+          </div>
 
-        {/* Additional Info */}
-        <div className="mt-12 text-center text-sm text-muted-foreground max-w-2xl">
-          <p>
-            Your intelligent assistant, ready to help you with any questions or tasks.
-          </p>
+          {/* Large Input Area */}
+          <div className="w-full max-w-3xl">
+            <PromptSuggestions
+              onSuggestionClick={(suggestion) => {
+                setInputValue(suggestion);
+                // Auto-start chat with the suggestion
+                setIsChatStarted(true);
+              }}
+              visible={true}
+            />
+            
+            {/* Suggestion Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <SuggestionCard
+                imageUrl="https://cdn.sanity.io/images/inkbj32c/production/f913be212c5309b4fe6fd98536040cd6378c93ea-3840x2160.jpg?rect=292,0,2958,2160&w=953&h=696&q=100&auto=format&dpr=2"
+                title={getTranslation("card.newWinterKits.title", languageCode)}
+                description={getTranslation("card.newWinterKits.description", languageCode)}
+                onClick={() => {
+                  setInputValue(getTranslation("card.newWinterKits.title", languageCode));
+                  setIsChatStarted(true);
+                }}
+              />
+              <SuggestionCard
+                imageUrl="https://cdn.sanity.io/images/inkbj32c/production/fb2e46f0455efaecf2e901dba6fc1e49fc9db0c1-1920x1080.png?rect=221,0,1479,1080&w=953&h=696&q=100&auto=format&dpr=1"
+                title={getTranslation("card.grottoflage.title", languageCode)}
+                description={getTranslation("card.grottoflage.description", languageCode)}
+                onClick={() => {
+                  setInputValue(getTranslation("card.grottoflage.title", languageCode));
+                  setIsChatStarted(true);
+                }}
+              />
+            </div>
+            
+            <ChatInput
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onSubmit={handleStartChat}
+              placeholder={getTranslation("home.input.placeholder", languageCode)}
+            />
+          </div>
+
+          {/* Additional Info */}
+          <div className="mt-12 text-center text-sm text-muted-foreground max-w-2xl">
+            <p>
+              {getTranslation("home.description", languageCode)}
+            </p>
+          </div>
         </div>
       </div>
+      
+        {/* Cart Sidebar - within main area, slides from right */}
+      <CartSidebar />
+      </div>
+      
+      <LanguageCountryModal 
+        isOpen={isLanguageModalOpen || !hasSelectedPreferences}
+        onClose={() => setIsLanguageModalOpen(false)}
+      />
     </div>
   );
+}
+
+export default function Home() {
+  return <HomeContent />;
 }

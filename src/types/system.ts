@@ -3,7 +3,7 @@ import { BaseDocument } from './base';
 // Logs Collection
 export interface Log extends BaseDocument {
   level: 'info' | 'warn' | 'error' | 'debug';
-  category: 'auth' | 'chat' | 'api' | 'system' | 'security' | 'real_estate';
+  category: 'auth' | 'chat' | 'api' | 'system' | 'security' | 'product' | 'commerce';
   message: string;
   userId?: string;
   chatId?: string;
@@ -19,10 +19,10 @@ export interface Log extends BaseDocument {
 // Configs Collection
 export interface Config extends BaseDocument {
   key: string;
-  value: any;
+  value: string | number | boolean | Record<string, unknown> | unknown[];
   type: 'string' | 'number' | 'boolean' | 'object' | 'array';
   description: string;
-  category: 'api' | 'ui' | 'security' | 'limits' | 'real_estate';
+  category: 'api' | 'ui' | 'security' | 'limits' | 'product' | 'commerce';
   isPublic: boolean;
   updatedBy: string;
   version: number;
@@ -44,8 +44,8 @@ export interface Notification extends BaseDocument {
 // Integrations Collection
 export interface Integration extends BaseDocument {
   name: string;
-  type: 'payment' | 'email' | 'analytics' | 'crm' | 'mls';
-  config: any;
+  type: 'payment' | 'email' | 'analytics' | 'crm' | 'inventory' | 'shipping' | 'reviews';
+  config: Record<string, unknown>;
   isActive: boolean;
   lastSync?: Date;
   errorCount: number;
