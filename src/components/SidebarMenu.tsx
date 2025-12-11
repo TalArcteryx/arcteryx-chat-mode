@@ -74,9 +74,12 @@ export default function SidebarMenu({ isExpanded, onToggle }: SidebarMenuProps) 
       }`}
     >
       {/* Header */}
-      <div className={`flex items-center justify-center px-4 border-b border-border ${
-        isExpanded ? "py-[26.25px]" : "py-[22.5px]"
-      }`}>
+      <Link 
+        href="/"
+        className={`flex items-center justify-center px-4 border-b border-border cursor-pointer hover:opacity-80 transition-opacity ${
+          isExpanded ? "py-[26.25px]" : "py-[22.5px]"
+        }`}
+      >
         {isExpanded ? (
           <Image
             src="/logo-h.png"
@@ -96,7 +99,7 @@ export default function SidebarMenu({ isExpanded, onToggle }: SidebarMenuProps) 
             priority
           />
         )}
-      </div>
+      </Link>
 
       {/* Menu Items */}
       <div className="flex-1 overflow-y-auto p-4">

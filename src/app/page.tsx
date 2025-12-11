@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ShoppingBag, SquarePen } from "lucide-react";
 import Chat from "@/components/Chat";
 import ChatInput from "@/components/ui/chat-input";
@@ -168,7 +169,7 @@ function HomeContent() {
           {/* Main Content Area */}
           <div className="flex-1 flex flex-col items-center justify-center px-4">
             {/* Logo */}
-            <div className="mb-8">
+            <Link href="/" className="mb-8 cursor-pointer hover:opacity-80 transition-opacity">
               <Image
                 src="/logo.svg"
                 alt="Arc'teryx Logo"
@@ -176,7 +177,7 @@ function HomeContent() {
                 height={120}
                 priority
               />
-            </div>
+            </Link>
 
             {/* Logo/Title */}
             <div className="text-center mb-6">
