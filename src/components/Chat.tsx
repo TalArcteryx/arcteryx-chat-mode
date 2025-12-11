@@ -41,9 +41,27 @@ export default function Chat({ initialMessage }: ChatProps) {
   const isInitialMountRef = useRef(true);
   const hasInitializedRef = useRef(false);
 
-  // Initialize messages with translated initial message only if no messages exist
+  // Initialize messages with translated initial message only if no messages exist AND no saved history
   useEffect(() => {
     if (languageCode && messages.length === 0 && !hasInitializedRef.current) {
+      // Check if there's saved history in localStorage before adding initial message
+      if (typeof window !== 'undefined') {
+        try {
+          const savedMessages = localStorage.getItem('chatHistory');
+          if (savedMessages) {
+            const parsed = JSON.parse(savedMessages);
+            // If there's saved history, don't add initial message - let ChatContext handle it
+            if (parsed.length > 0) {
+              hasInitializedRef.current = true;
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Failed to check chat history:', error);
+        }
+      }
+      
+      // Only add initial message if there's truly no history
       hasInitializedRef.current = true;
       const initialMessage: Message = {
         id: generateId(),
