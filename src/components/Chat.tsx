@@ -8,6 +8,7 @@ import ProductModal from "@/components/ProductModal";
 import CompleteYourLookProducts from "@/components/CompleteYourLookProducts";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
+import { useDeveloperConsole } from "@/contexts/DeveloperConsoleContext";
 import { getTranslation } from "@/lib/translations";
 
 interface Product {
@@ -48,8 +49,9 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export default function Chat({ initialMessage }: ChatProps) {
-  const { languageCode } = useLanguage();
+  const { languageCode, country } = useLanguage();
   const { items: cartItems, suggestedProducts } = useCart();
+  const { addLog } = useDeveloperConsole();
   const [messages, setMessages] = useState<Message[]>([]);
   const [genderPreference, setGenderPreference] = useState<"men" | "women" | null>(null);
   const prevCartItemsRef = useRef<string[]>([]);
@@ -182,6 +184,7 @@ export default function Chat({ initialMessage }: ChatProps) {
           messages: [{ role: "assistant", content: messages[0].content }, userMessage],
           languageCode: languageCode,
           genderPreference: genderPreference,
+          country: country,
         }),
       });
 
@@ -213,28 +216,21 @@ export default function Chat({ initialMessage }: ChatProps) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
             if (data === '[DONE]') {
-              // Stream finished, add the complete message with products
+              // Stream finished, add the complete message with text and products
               console.log('📦 Final extracted products before adding message:', extractedProducts.length);
-              // If products exist, only add message with products (no text content)
-              if (extractedProducts.length > 0 && !productsAdded) {
+              if (!productsAdded) {
                 const assistantMessage: Message = {
                   id: generateId(),
                   role: "assistant",
-                  content: "",
-                  products: extractedProducts,
+                  content: accumulatedContent.trim(), // Include text explanation
+                  products: extractedProducts.length > 0 ? extractedProducts : undefined,
                 };
-                console.log('💬 Message created with products only (no text):', assistantMessage.products?.length || 0);
+                console.log('💬 Message created with text and products:', {
+                  hasText: !!assistantMessage.content,
+                  productCount: assistantMessage.products?.length || 0
+                });
                 setMessages(prev => [...prev, assistantMessage]);
                 productsAdded = true;
-              } else if (accumulatedContent.trim() && !productsAdded) {
-                // Only add text message if no products and there's content
-                const assistantMessage: Message = {
-                  id: generateId(),
-                  role: "assistant",
-                  content: accumulatedContent,
-                };
-                console.log('💬 Message created with text only (no products)');
-                setMessages(prev => [...prev, assistantMessage]);
               }
               // Add a small delay before hiding streaming message for smoother transition
               setTimeout(() => setStreamingMessage(""), 100);
@@ -244,35 +240,25 @@ export default function Chat({ initialMessage }: ChatProps) {
             try {
               const parsed = JSON.parse(data);
               
-              // CRITICAL: Check for products FIRST, before processing any text content
-              // If products are received, handle them IMMEDIATELY and skip ALL text content
-              if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
-                extractedProducts = parsed.products;
-                console.log('✅ Products received during handleInitialMessage - IMMEDIATELY showing carousel, skipping chat response:', parsed.products.length, parsed.products.map((p: Product) => p.name));
-                // Immediately add products and stop streaming text completely
-                if (!productsAdded) {
-                  const assistantMessage: Message = {
-                    id: generateId(),
-                    role: "assistant",
-                    content: "", // NO text content when products are shown
-                    products: extractedProducts,
-                  };
-                  setMessages(prev => [...prev, assistantMessage]);
-                  productsAdded = true;
-                  accumulatedContent = "";
-                  setStreamingMessage(""); // Clear any streaming text immediately
-                  setIsLoading(false); // Stop loading immediately when products are shown
-                  // Stop reading the stream - we have products, no need for text
-                  shouldStopStreaming = true;
-                  reader.cancel().catch(() => {}); // Cancel stream, ignore errors
-                  break;
-                }
-                // Skip processing content when products are present
+              // Handle log events from server
+              if (parsed.log) {
+                addLog(
+                  parsed.log.message,
+                  parsed.log.level as "info" | "success" | "warning" | "error",
+                  parsed.log.details
+                );
                 continue;
               }
               
-              // Only process text content if no products have been added
-              // CRITICAL: If products were found, we should have already exited above
+              // Handle products - store them but don't stop streaming text
+              if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
+                extractedProducts = parsed.products;
+                console.log('✅ Products received during handleInitialMessage - will add to message with text:', parsed.products.length);
+                // Don't stop streaming - products will be added to the message when stream completes
+                continue;
+              }
+              
+              // Process text content - always accumulate it
               if (!productsAdded && !shouldStopStreaming && parsed.content) {
                 accumulatedContent += parsed.content;
                 setStreamingMessage(accumulatedContent);
@@ -304,7 +290,7 @@ export default function Chat({ initialMessage }: ChatProps) {
       setIsLoading(false);
       setStreamingMessage("");
     }
-  }, [messages, languageCode, genderPreference]);
+  }, [messages, languageCode, genderPreference, addLog]);
 
   // Auto-send initial message if provided (only once)
   useEffect(() => {
@@ -368,6 +354,7 @@ export default function Chat({ initialMessage }: ChatProps) {
           messages: [...messages, userMessage],
           languageCode: languageCode,
           genderPreference: genderPreference,
+          country: country,
         }),
       });
 
@@ -398,28 +385,21 @@ export default function Chat({ initialMessage }: ChatProps) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
             if (data === '[DONE]') {
-              // Stream finished, add the complete message with products
+              // Stream finished, add the complete message with text and products
               console.log('📦 Final extracted products before adding message:', extractedProducts.length);
-              // If products exist, only add message with products (no text content)
-              if (extractedProducts.length > 0 && !productsAdded) {
+              if (!productsAdded) {
                 const assistantMessage: Message = {
                   id: generateId(),
                   role: "assistant",
-                  content: "",
-                  products: extractedProducts,
+                  content: accumulatedContent.trim(), // Include text explanation
+                  products: extractedProducts.length > 0 ? extractedProducts : undefined,
                 };
-                console.log('💬 Message created with products only (no text):', assistantMessage.products?.length || 0);
+                console.log('💬 Message created with text and products:', {
+                  hasText: !!assistantMessage.content,
+                  productCount: assistantMessage.products?.length || 0
+                });
                 setMessages(prev => [...prev, assistantMessage]);
                 productsAdded = true;
-              } else if (accumulatedContent.trim() && !productsAdded) {
-                // Only add text message if no products and there's content
-                const assistantMessage: Message = {
-                  id: generateId(),
-                  role: "assistant",
-                  content: accumulatedContent,
-                };
-                console.log('💬 Message created with text only (no products)');
-                setMessages(prev => [...prev, assistantMessage]);
               }
               // Add a small delay before hiding streaming message for smoother transition
               setTimeout(() => setStreamingMessage(""), 100);
@@ -429,37 +409,26 @@ export default function Chat({ initialMessage }: ChatProps) {
             try {
               const parsed = JSON.parse(data);
               
-              // CRITICAL: Check for products FIRST, before processing any text content
-              // If products are received, handle them IMMEDIATELY and skip ALL text content
-              if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
-                extractedProducts = parsed.products;
-                console.log('✅ Products received in stream - IMMEDIATELY showing carousel, skipping chat response:', parsed.products.length, parsed.products.map((p: Product) => p.name));
-                // Immediately add products and stop streaming text completely
-                if (!productsAdded) {
-                  const assistantMessage: Message = {
-                    id: generateId(),
-                    role: "assistant",
-                    content: "", // NO text content when products are shown
-                    products: extractedProducts,
-                  };
-                  setMessages(prev => [...prev, assistantMessage]);
-                  productsAdded = true;
-                  accumulatedContent = "";
-                  setStreamingMessage(""); // Clear any streaming text immediately
-                  setIsLoading(false); // Stop loading immediately when products are shown
-                  // Stop reading the stream - we have products, no need for text
-                  shouldStopStreaming = true;
-                  reader.cancel().catch(() => {}); // Cancel stream, ignore errors
-                  break;
-                }
-                // Skip processing content when products are present
+              // Handle log events from server
+              if (parsed.log) {
+                addLog(
+                  parsed.log.message,
+                  parsed.log.level as "info" | "success" | "warning" | "error",
+                  parsed.log.details
+                );
                 continue;
               }
               
-              // Only process text content if no products have been added
-              // CRITICAL: If products were found, we should have already exited above
+              // Handle products - store them but don't stop streaming text
+              if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
+                extractedProducts = parsed.products;
+                console.log('✅ Products received in stream - will add to message with text:', parsed.products.length);
+                // Don't stop streaming - products will be added to the message when stream completes
+                continue;
+              }
+              
+              // Process text content - always accumulate it
               if (!productsAdded && !shouldStopStreaming && parsed.content) {
-                // Only accumulate content if we haven't found products
                 accumulatedContent += parsed.content;
                 setStreamingMessage(accumulatedContent);
                 // Add a small delay to make streaming more visible

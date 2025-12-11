@@ -44,8 +44,7 @@ function buildProductCatalog(genderPreference: GenderPreference): string {
       const rating = product.rating?.average ? ` (${product.rating.average}/5 stars, ${product.rating.count || 0} reviews)` : '';
       const badges = product.badges && product.badges.length > 0 ? ` [${product.badges.join(', ')}]` : '';
       const colors = product.colors && product.colors.length > 0 ? ` Available colors: ${product.colors.slice(0, 5).join(', ')}${product.colors.length > 5 ? '...' : ''}` : '';
-      const mainImage = product.images?.main ? ` [Main Image: ${product.images.main}]` : '';
-      catalog += `- ${product.name}: ${product.description}. $${product.price} CAD${rating}${badges}${colors}${mainImage}\n`;
+      catalog += `- ${product.name}: ${product.description}. $${product.price} CAD${rating}${badges}${colors}\n`;
     });
   });
 
@@ -155,6 +154,8 @@ export async function handleProductRequest(options: ProductAgentOptions): Promis
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
+        // Log product extraction
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ log: { level: 'success', message: `Extracted ${directProducts.length} products`, details: `Products matched from ${genderLabel} catalog` } })}\n\n`));
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ products: directProducts })}\n\n`));
         controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
         controller.close();
@@ -193,22 +194,19 @@ ${arcteryxKnowledge}
 KEY RESPONSIBILITIES:
 ${isGenderClear ? `- Use the ACTUAL product catalog above (with real product names, prices, and descriptions) to make accurate recommendations for ${genderLabel} products
 - Reference specific products by their exact names from the catalog
-- Provide accurate pricing in CAD from the catalog
-- Mention available colors when relevant
-- Note product badges (New, Revised, Fair Trade Certified) when applicable
-- Reference customer ratings when available
-- Explain technical features and materials
-- Suggest complete layering systems and complementary products
-- CRITICAL: Always mention at least 2-5 specific product names from the catalog when making recommendations - this enables the product carousel to display them` : `- DO NOT show products until gender is clarified. Ask: "Are you looking for men's or women's [product]?"`}
+- CRITICAL: Always mention at least 2-5 specific product names from the catalog when making recommendations - this enables the product carousel to display them
+- ONLY answer what the user asks - don't add extra information unless asked` : `- DO NOT show products until gender is clarified. Ask: "Are you looking for men's or women's [product]?"`}
 
 COMMUNICATION STYLE:
-- Be conversational, knowledgeable, and enthusiastic about outdoor gear
-- Use specific product names and model numbers when recommending products
-- Explain WHY a product fits their needs (technical reasons)
-- Ask clarifying questions about activity, weather, and preferences
-- Mention approximate pricing when relevant
-- Reference Arcteryx's lifetime warranty and sustainability programs when appropriate
-- Be honest about product limitations or when something might not be the best fit`
+- ALWAYS respond in SHORT, BULLET-POINT format unless the user explicitly asks to elaborate or explain in detail
+- Keep answers EXTREMELY concise - maximum 2-3 bullet points
+- ONLY respond to what the user asks - don't volunteer extra information
+- Use bullet points (•) or dashes (-) for lists
+- Only provide detailed explanations if user asks "tell me more", "elaborate", "explain", "details", etc.
+- Don't add unsolicited information about pricing, colors, ratings, or features unless the user specifically asks
+- Don't suggest complementary products unless asked
+- Don't mention warranty or sustainability unless asked
+- Be direct and to the point - answer the question and stop`
   };
 
   // Call AI
@@ -220,7 +218,7 @@ COMMUNICATION STYLE:
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [systemMessage, ...typedMessages],
-    max_tokens: 1000,
+    max_tokens: 200,
     temperature: 0.7,
     stream: true,
   });
@@ -233,6 +231,7 @@ COMMUNICATION STYLE:
   const stream = new ReadableStream({
     async start(controller) {
       let charCount = 0;
+      let foundProducts: Product[] = [];
       
       for await (const chunk of completion) {
         const content = chunk.choices[0]?.delta?.content || '';
@@ -240,38 +239,36 @@ COMMUNICATION STYLE:
           fullResponse += content;
           charCount += content.length;
 
-          // Check for products in response
-          if (!productsSent && isGenderClear && charCount > 20) {
+          // Check for products in response, but don't send them yet - wait for more explanation
+          if (!productsSent && isGenderClear && charCount > 100) {
             const extractedProducts = extractProductsFromText(fullResponse, products, lastUserMessageText);
             if (extractedProducts.length > 0) {
-              console.log(`✅ Product Agent: Extracted ${extractedProducts.length} products from AI response`);
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ products: extractedProducts })}\n\n`));
-              productsSent = true;
-              controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-              controller.close();
-              return;
+              foundProducts = extractedProducts;
+              // Don't send products yet - continue streaming text for explanation
             }
           }
 
-          if (!productsSent) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
-          }
+          // Always stream text content - don't stop even if products are found
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
         }
       }
 
-      // Final check for products
-      if (!productsSent && isGenderClear) {
-        const extractedProducts = extractProductsFromText(fullResponse, products, lastUserMessageText);
+      // After streaming is complete, send products if found
+      if (isGenderClear) {
+        const extractedProducts = foundProducts.length > 0 
+          ? foundProducts 
+          : extractProductsFromText(fullResponse, products, lastUserMessageText);
+        
         if (extractedProducts.length > 0) {
           console.log(`✅ Product Agent: Extracted ${extractedProducts.length} products after streaming`);
+          // Log product extraction
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ log: { level: 'success', message: `Extracted ${extractedProducts.length} products after streaming`, details: `Products matched from ${genderLabel} catalog` } })}\n\n`));
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ products: extractedProducts })}\n\n`));
           productsSent = true;
         }
       }
 
-      if (!productsSent) {
-        controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-      }
+      controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
       controller.close();
     },
   });

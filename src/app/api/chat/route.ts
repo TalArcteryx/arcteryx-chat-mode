@@ -8,7 +8,7 @@ import { extractProductsFromQuery } from './utils/productExtractor';
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages, languageCode = 'en', genderPreference } = await request.json();
+    const { messages, languageCode = 'en', genderPreference, country } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -22,6 +22,9 @@ export async function POST(request: NextRequest) {
       .filter((m: { role: string }) => m.role === 'user')
       .pop();
     const lastUserMessageText = lastUserMessage?.content || '';
+    
+    // Check for outlet mention
+    const mentionsOutlet = /outlet/i.test(lastUserMessageText);
     
     // Detect gender preference
     const currentGenderPreference = detectGenderPreference(
@@ -85,6 +88,43 @@ export async function POST(request: NextRequest) {
     // Classify intent using router
     const routerResult = await classifyIntent(lastUserMessageText, messages);
     console.log(`🎯 Intent classified: ${routerResult.intent} (confidence: ${routerResult.confidence})`);
+    
+    // Prepare log events to send through stream
+    const logEvents: Array<{ level: string; message: string; details?: string }> = [];
+    
+    // Log outlet request if detected
+    if (mentionsOutlet) {
+      logEvents.push({
+        level: 'info',
+        message: 'Outlet request detected',
+        details: 'Request being made to outlet'
+      });
+    }
+    
+    // Log intent classification
+    logEvents.push({
+      level: 'success',
+      message: `Intent classified: ${routerResult.intent}`,
+      details: `Confidence: ${(routerResult.confidence * 100).toFixed(0)}%`
+    });
+    
+    // Log gender preference detection
+    if (currentGenderPreference) {
+      logEvents.push({
+        level: 'info',
+        message: `Gender preference detected: ${currentGenderPreference}`,
+        details: 'Filtering products by gender preference'
+      });
+    }
+    
+    // Log country-based inventory (only for product requests)
+    if (country && routerResult.intent === 'product') {
+      logEvents.push({
+        level: 'info',
+        message: `Using country: ${country}`,
+        details: `Pulling inventory from ${country}`
+      });
+    }
 
     // Route to appropriate agent
     let responseStream: ReadableStream;
@@ -119,9 +159,16 @@ export async function POST(request: NextRequest) {
     // Wrap stream to include gender preference update if needed
     const wrappedStream = new ReadableStream({
       async start(controller) {
+        const encoder = new TextEncoder();
+        
+        // Send log events first
+        for (const logEvent of logEvents) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ log: logEvent })}\n\n`));
+        }
+        
         // Send gender preference update if changed
         if (currentGenderPreference !== genderPreference) {
-          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ genderPreference: currentGenderPreference })}\n\n`));
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ genderPreference: currentGenderPreference })}\n\n`));
         }
 
         // Forward the agent's stream

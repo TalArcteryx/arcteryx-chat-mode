@@ -10,6 +10,7 @@ import SuggestionCard from "@/components/SuggestionCard";
 import CartSidebar from "@/components/CartSidebar";
 import SidebarMenu from "@/components/SidebarMenu";
 import LanguageCountryModal from "@/components/LanguageCountryModal";
+import DeveloperConsole from "@/components/DeveloperConsole";
 import { useCart } from "@/contexts/CartContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslation } from "@/lib/translations";
@@ -95,6 +96,7 @@ function HomeContent() {
           isOpen={isLanguageModalOpen || !hasSelectedPreferences}
           onClose={() => setIsLanguageModalOpen(false)}
         />
+        <DeveloperConsole />
       </div>
     );
   }
@@ -216,6 +218,7 @@ function HomeContent() {
         isOpen={isLanguageModalOpen || !hasSelectedPreferences}
         onClose={() => setIsLanguageModalOpen(false)}
       />
+      <DeveloperConsole />
     </div>
   );
 }
