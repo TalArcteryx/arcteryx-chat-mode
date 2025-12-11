@@ -83,7 +83,138 @@ export default function Chat({ initialMessage }: ChatProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Watch for cart additions and add chat message
+  const handleUpsellRecommendations = useCallback(async (addedProduct: any) => {
+    // Don't show upsell if we're already loading or if no gender preference is set
+    if (isLoading || !genderPreference) {
+      return;
+    }
+
+    console.log('🛒 Triggering upsell for:', addedProduct.name);
+
+    // Get conversation context for better upsell recommendations
+    const conversationContext = messages
+      .filter(msg => msg.role === 'user')
+      .map(msg => msg.content)
+      .join(' ');
+
+    // Create a special upsell message that the product agent will recognize
+    const upsellMessage: Message = {
+      id: generateId(),
+      role: "user",
+      content: `UPSELL_REQUEST:${JSON.stringify({
+        addedProduct: {
+          id: addedProduct.id,
+          name: addedProduct.name,
+          category: addedProduct.category,
+          description: addedProduct.description,
+          price: addedProduct.price,
+        },
+        cartItems: cartItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+        })),
+        conversationContext: conversationContext
+      })}`,
+    };
+
+    // Add the upsell message (hidden from UI) and process it
+    const currentMessages = [...messages, upsellMessage];
+    setIsLoading(true);
+    setStreamingMessage("");
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: currentMessages,
+          languageCode: languageCode,
+          genderPreference: genderPreference,
+          country: country,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Upsell request failed:', response.status);
+        return;
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        console.error('No response body for upsell');
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let accumulatedContent = "";
+      let extractedProducts: Product[] = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') {
+              // Stream finished - create upsell message
+              if (accumulatedContent.trim() || extractedProducts.length > 0) {
+                const upsellResponse: Message = {
+                  id: generateId(),
+                  role: "assistant",
+                  content: accumulatedContent || "Here are some great additions to complete your setup:",
+                  products: extractedProducts.length > 0 ? extractedProducts : undefined,
+                };
+
+                addMessage(upsellResponse);
+                console.log('✅ Upsell message added:', {
+                  contentLength: accumulatedContent.length,
+                  productsCount: extractedProducts.length
+                });
+              }
+
+              setStreamingMessage("");
+              return;
+            }
+
+            try {
+              const parsed = JSON.parse(data);
+
+              if (parsed.content) {
+                accumulatedContent += parsed.content;
+                setStreamingMessage(accumulatedContent);
+                await delay(30);
+              }
+
+              if (parsed.products && Array.isArray(parsed.products)) {
+                extractedProducts = parsed.products;
+                console.log('🛒 Upsell products received:', parsed.products.length);
+              }
+
+              if (parsed.genderPreference) {
+                setGenderPreference(parsed.genderPreference);
+              }
+            } catch {
+              // Ignore parsing errors
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Upsell error:', error);
+    } finally {
+      setIsLoading(false);
+      setStreamingMessage("");
+    }
+  }, [isLoading, genderPreference, cartItems, languageCode, addMessage, messages, country]);
+
+  // Watch for cart additions and trigger upsell recommendations
   useEffect(() => {
     // Skip on initial mount to avoid showing messages for items already in cart
     if (isInitialMountRef.current) {
@@ -103,77 +234,30 @@ export default function Chat({ initialMessage }: ChatProps) {
     // Find newly added items
     const newItems = cartItems.filter(item => !prevCartIds.includes(item.id));
 
-
     if (newItems.length > 0) {
-      // Show message for any newly added item
+      // Get the newest item for upsell
       const newestItem = newItems[newItems.length - 1];
+
+      // Show confirmation message
       const message = getTranslation("chat.itemAddedToCart", languageCode || 'en')
         .replace('{productName}', newestItem.name);
 
-
-      const assistantMessage: Message = {
+      const confirmationMessage: Message = {
         id: generateId(),
         role: "assistant",
         content: message,
       };
 
-      addMessage(assistantMessage);
+      addMessage(confirmationMessage);
+
+      // Trigger upsell recommendations
+      handleUpsellRecommendations(newestItem);
     }
 
     prevCartItemsRef.current = currentCartIds;
-  }, [cartItems, languageCode, addMessage]);
+  }, [cartItems, languageCode, addMessage, isLoading, genderPreference, handleUpsellRecommendations]);
 
-  // Watch for suggested products and add "Complete Your Look" message
-  useEffect(() => {
-    // Skip on initial mount
-    if (isInitialMountRef.current) {
-      prevSuggestedProductsRef.current = suggestedProducts.map(p => p.id);
-      return;
-    }
-
-    // Only show if we have suggested products and cart has items
-    if (suggestedProducts.length > 0 && cartItems.length > 0) {
-      const currentSuggestedIds = suggestedProducts.map(p => p.id).sort();
-      const prevSuggestedIds = prevSuggestedProductsRef.current.sort();
-
-
-      // Check if suggested products changed (new suggestions appeared or changed)
-      const idsChanged = currentSuggestedIds.length !== prevSuggestedIds.length ||
-        currentSuggestedIds.some((id, idx) => id !== prevSuggestedIds[idx]);
-
-        currentSuggestedIds.some((id, idx) => id !== prevSuggestedIds[idx]);
-
-      if (idsChanged) {
-        const message = getTranslation("chat.completeYourLook", languageCode || 'en');
-
-
-        const assistantMessage: Message = {
-          id: generateId(),
-          role: "assistant",
-          content: message,
-          products: suggestedProducts.map(p => ({
-            id: p.id,
-            name: p.name,
-            description: p.description,
-            price: p.price,
-            currency: p.currency,
-            images: p.images,
-            url: p.url,
-            rating: p.rating,
-            colors: p.colors,
-            badges: p.badges,
-            category: p.category,
-            gender: p.gender,
-          })),
-        };
-
-        addMessage(assistantMessage);
-        prevSuggestedProductsRef.current = suggestedProducts.map(p => p.id);
-      }
-    } else if (suggestedProducts.length === 0) {
-      prevSuggestedProductsRef.current = [];
-    }
-  }, [suggestedProducts, cartItems.length, languageCode, addMessage]);
+  // NOTE: Removed "Complete Your Look" useEffect - now handled by upsell agent
 
   const handleInitialMessage = useCallback(async (message: string) => {
     const userMessage: Message = {
@@ -490,80 +574,82 @@ export default function Chat({ initialMessage }: ChatProps) {
       <div className="flex-1 overflow-y-auto px-4 pb-8 pt-8 space-y-12">
         {/* Chat content wrapper - centered with max width matching input */}
         <div className="max-w-3xl mx-auto w-full">
-          {messages.map((message, index) => (
-            <div key={message.id} className="w-full">
-              {message.role === "assistant" && index === 0 ? null : (
-                // Only show message bubble if there's content (skip if only products)
-                message.content.trim() && (
-                  <div
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
-                      } ${message.role === "user" ? "opacity-0 animate-fade-in-up" : ""} mb-6`}
-                    style={{
-                      ...(message.role === "user" && {
-                        animationDelay: `${index * 100}ms`,
-                        animation: `fadeInUp 0.6s ease-out ${index * 100}ms forwards`
-                      })
-                    }}
-                  >
+          {messages
+            .filter(message => !message.content.startsWith('UPSELL_REQUEST:')) // Hide upsell request messages
+            .map((message, index) => (
+              <div key={message.id} className="w-full">
+                {message.role === "assistant" && index === 0 ? null : (
+                  // Only show message bubble if there's content (skip if only products)
+                  message.content.trim() && (
                     <div
-                      className={`max-w-[80%] ${message.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-2xl px-4 py-3 shadow-sm"
-                        : "text-foreground"
-                        }`}
+                      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                        } ${message.role === "user" ? "opacity-0 animate-fade-in-up" : ""} mb-6`}
+                      style={{
+                        ...(message.role === "user" && {
+                          animationDelay: `${index * 100}ms`,
+                          animation: `fadeInUp 0.6s ease-out ${index * 100}ms forwards`
+                        })
+                      }}
                     >
-                      {message.role === "user" ? (
-                        <p className="whitespace-pre-wrap leading-relaxed text-sm">{message.content}</p>
-                      ) : (
-                        <div className="text-sm prose max-w-none">
-                          <ReactMarkdown>{message.content}</ReactMarkdown>
-                        </div>
-                      )}
+                      <div
+                        className={`max-w-[80%] ${message.role === "user"
+                          ? "bg-primary text-primary-foreground rounded-2xl px-4 py-3 shadow-sm"
+                          : "text-foreground"
+                          }`}
+                      >
+                        {message.role === "user" ? (
+                          <p className="whitespace-pre-wrap leading-relaxed text-sm">{message.content}</p>
+                        ) : (
+                          <div className="text-sm prose max-w-none">
+                            <ReactMarkdown>{message.content}</ReactMarkdown>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  )
+                )}
+                {/* Product display for assistant messages - outside the message bubble */}
+                {message.role === "assistant" && message.products && message.products.length > 0 && (
+                  <div className="w-full mb-6">
+                    {/* Check if this is a "Complete Your Look" message by checking message content */}
+                    {(() => {
+                      // Only show CompleteYourLookProducts if message content explicitly contains "complete your look" text
+                      // For all other product messages (including empty content), show ProductCarousel
+                      const messageContentLower = (message.content || '').toLowerCase().trim();
+
+                      // Check for "complete your look" in multiple languages
+                      const completeYourLookPatterns = [
+                        'complete your look',
+                        'completez votre look',
+                        'completa tu look',
+                        'completa il tuo look',
+                        'vervollständigen sie ihr outfit',
+                        'ルックを完成',
+                        '完善您的造型',
+                        '룩을 완성'
+                      ];
+
+                      const isCompleteYourLook = messageContentLower.length > 0 &&
+                        completeYourLookPatterns.some(pattern => messageContentLower.includes(pattern));
+
+                      // If message content is empty or doesn't match "complete your look", show carousel
+                      // This ensures ALL product results show carousel by default
+                      return isCompleteYourLook ? (
+                        <CompleteYourLookProducts
+                          products={message.products}
+                          onProductClick={handleProductClick}
+                        />
+                      ) : (
+                        <ProductCarousel
+                          products={message.products}
+                          onProductClick={handleProductClick}
+                        />
+                      );
+                    })()}
                   </div>
-                )
-              )}
-              {/* Product display for assistant messages - outside the message bubble */}
-              {message.role === "assistant" && message.products && message.products.length > 0 && (
-                <div className="w-full mb-6">
-                  {/* Check if this is a "Complete Your Look" message by checking message content */}
-                  {(() => {
-                    // Only show CompleteYourLookProducts if message content explicitly contains "complete your look" text
-                    // For all other product messages (including empty content), show ProductCarousel
-                    const messageContentLower = (message.content || '').toLowerCase().trim();
-
-                    // Check for "complete your look" in multiple languages
-                    const completeYourLookPatterns = [
-                      'complete your look',
-                      'completez votre look',
-                      'completa tu look',
-                      'completa il tuo look',
-                      'vervollständigen sie ihr outfit',
-                      'ルックを完成',
-                      '完善您的造型',
-                      '룩을 완성'
-                    ];
-
-                    const isCompleteYourLook = messageContentLower.length > 0 &&
-                      completeYourLookPatterns.some(pattern => messageContentLower.includes(pattern));
-
-                    // If message content is empty or doesn't match "complete your look", show carousel
-                    // This ensures ALL product results show carousel by default
-                    return isCompleteYourLook ? (
-                      <CompleteYourLookProducts
-                        products={message.products}
-                        onProductClick={handleProductClick}
-                      />
-                    ) : (
-                      <ProductCarousel
-                        products={message.products}
-                        onProductClick={handleProductClick}
-                      />
-                    );
-                  })()}
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            ))}
 
           {/* Streaming message */}
           {streamingMessage && (

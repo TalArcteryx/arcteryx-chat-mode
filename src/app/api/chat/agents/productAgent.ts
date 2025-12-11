@@ -2,6 +2,7 @@ import { OpenAI } from 'openai';
 import { getProductDataByGender, Product } from '../utils/dataLoader';
 import { extractProductsFromQuery, extractProductsFromText } from '../utils/productExtractor';
 import { GenderPreference } from '../utils/genderDetector';
+import { handleUpsellRequest } from './upsellAgent';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -427,6 +428,24 @@ function enhancedProductMatching(aiResponse: string, products: Product[]): Produ
   return matchedProducts.slice(0, 6);
 }
 
+async function handleUpsellFromProductAgent(
+  upsellData: { addedProduct: any; cartItems: any[]; conversationContext?: string },
+  genderPreference: GenderPreference,
+  languageCode: string
+): Promise<ProductAgentResponse> {
+  console.log('🛒 Product Agent: Processing upsell for:', upsellData.addedProduct.name);
+  console.log('🛒 Product Agent: Conversation context:', upsellData.conversationContext);
+  
+  // Use the existing upsell agent with conversation context
+  return await handleUpsellRequest({
+    addedProduct: upsellData.addedProduct,
+    cartItems: upsellData.cartItems,
+    languageCode,
+    genderPreference,
+    conversationContext: upsellData.conversationContext,
+  });
+}
+
 function getArcteryxKnowledge(genderPreference: GenderPreference): string {
   const genderLabel = genderPreference === 'all' ? "ALL" :
     genderPreference === 'women' ? "WOMEN'S" :
@@ -511,6 +530,26 @@ export async function handleProductRequest(options: ProductAgentOptions): Promis
   const allUserMessages = messages
     .filter(m => m.role === 'user')
     .map(m => m.content?.toLowerCase() || '');
+
+  // Check if this is an upsell request
+  if (lastUserMessageText.startsWith('UPSELL_REQUEST:')) {
+    console.log('🛒 Product Agent: Handling upsell request');
+    try {
+      const upsellData = JSON.parse(lastUserMessageText.replace('UPSELL_REQUEST:', ''));
+      return await handleUpsellFromProductAgent(upsellData, currentGenderPreference, languageCode);
+    } catch (error) {
+      console.error('🛒 Product Agent: Failed to parse upsell request:', error);
+      // Return empty stream on error
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+          controller.close();
+        },
+      });
+      return { stream };
+    }
+  }
 
   const isGenderClear = currentGenderPreference !== null;
   const genderLabel = currentGenderPreference === 'all' ? "ALL" :

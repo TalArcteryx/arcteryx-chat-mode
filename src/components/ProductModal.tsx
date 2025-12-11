@@ -83,6 +83,8 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
         : undefined,
     };
     addToCart(cartProduct);
+    // Close modal after adding to cart for upsell flow
+    onClose();
   };
 
   const toggleSection = (section: string) => {
