@@ -158,7 +158,7 @@ function extractExactAIMentionedProducts(aiResponse: string, products: Product[]
   console.log(`🎯 EXACT EXTRACTION: Parsing AI response for specific product mentions`);
   const responseLower = aiResponse.toLowerCase();
   const extractedProducts: Product[] = [];
-  
+
   // Create a mapping of AI-mentioned names to actual database products
   const productNameMappings: Record<string, string[]> = {
     // Map AI mentions to actual database names (with and without "men's" suffix)
@@ -193,18 +193,18 @@ function extractExactAIMentionedProducts(aiResponse: string, products: Product[]
     'kyanite jacket': ['kyanite jacket men\'s'],
     'kyanite jacket men\'s': ['kyanite jacket men\'s']
   };
-  
+
   // Look for product mentions in the AI response
   Object.entries(productNameMappings).forEach(([aiName, dbNames]) => {
     if (responseLower.includes(aiName)) {
       console.log(`🎯 EXACT EXTRACTION: Found AI mention "${aiName}"`);
-      
+
       // Find the actual products in the database
       dbNames.forEach(dbName => {
-        const matchingProduct = products.find(product => 
+        const matchingProduct = products.find(product =>
           product.name.toLowerCase() === dbName
         );
-        
+
         if (matchingProduct && !extractedProducts.find(p => p.id === matchingProduct.id)) {
           extractedProducts.push(matchingProduct);
           console.log(`✅ EXACT EXTRACTION: Mapped "${aiName}" to "${matchingProduct.name}"`);
@@ -212,11 +212,11 @@ function extractExactAIMentionedProducts(aiResponse: string, products: Product[]
       });
     }
   });
-  
+
   // Also look for exact product name matches (in case AI uses correct names)
   products.forEach(product => {
     const productNameLower = product.name.toLowerCase();
-    
+
     // Check if the exact product name is mentioned
     if (responseLower.includes(productNameLower)) {
       if (!extractedProducts.find(p => p.id === product.id)) {
@@ -225,30 +225,30 @@ function extractExactAIMentionedProducts(aiResponse: string, products: Product[]
       }
     }
   });
-  
+
   console.log(`🎯 EXACT EXTRACTION: Found ${extractedProducts.length} exact matches`);
   return extractedProducts;
 }
 
 function forceCorrectProducts(aiResponse: string, products: Product[], contextualQuery: string): Product[] {
   console.log(`🚨 FORCE CORRECT: AI mentioned products but we need to show the right ones`);
-  
+
   // Analyze what the AI was trying to recommend based on context
   const responseLower = aiResponse.toLowerCase();
   const contextLower = contextualQuery.toLowerCase();
-  
+
   let forcedProducts: Product[] = [];
-  
+
   // If it's about cold weather / Antarctica / winter
   if (contextLower.includes('cold') || contextLower.includes('antarctica') || contextLower.includes('winter') || contextLower.includes('extreme')) {
     console.log(`🚨 FORCE CORRECT: Cold weather context detected`);
-    
+
     // Get the best cold weather jackets from the database
     const coldWeatherJackets = products.filter(p => {
       const name = p.name.toLowerCase();
       const desc = (p.description || '').toLowerCase();
       const category = (p.category || '').toLowerCase();
-      
+
       return category === 'jackets' && (
         name.includes('alpha sv') ||
         name.includes('therme down') ||
@@ -260,35 +260,35 @@ function forceCorrectProducts(aiResponse: string, products: Product[], contextua
         desc.includes('warm')
       );
     });
-    
+
     // Sort by relevance and take top 3
     forcedProducts = coldWeatherJackets
       .sort((a, b) => {
         // Prioritize specific cold weather models
         const aName = a.name.toLowerCase();
         const bName = b.name.toLowerCase();
-        
+
         if (aName.includes('alpha sv')) return -1;
         if (bName.includes('alpha sv')) return 1;
         if (aName.includes('therme down')) return -1;
         if (bName.includes('therme down')) return 1;
         if (aName.includes('cerium')) return -1;
         if (bName.includes('cerium')) return 1;
-        
+
         return 0;
       })
       .slice(0, 3);
   }
-  
+
   // If it's about mid layers / spring / layering
   else if (contextLower.includes('mid') || contextLower.includes('layer') || contextLower.includes('spring') || contextLower.includes('insulation')) {
     console.log(`🚨 FORCE CORRECT: Mid-layer context detected`);
-    
+
     const midLayerProducts = products.filter(p => {
       const name = p.name.toLowerCase();
       const desc = (p.description || '').toLowerCase();
       const category = (p.category || '').toLowerCase();
-      
+
       return (category === 'jackets' || category === 'shirts') && (
         name.includes('atom') ||
         name.includes('cerium') ||
@@ -299,19 +299,19 @@ function forceCorrectProducts(aiResponse: string, products: Product[], contextua
         desc.includes('mid')
       );
     });
-    
+
     forcedProducts = midLayerProducts.slice(0, 3);
   }
-  
+
   // General jacket context
   else if (responseLower.includes('jacket') || contextLower.includes('jacket')) {
     console.log(`🚨 FORCE CORRECT: General jacket context detected`);
-    
+
     const generalJackets = products.filter(p => {
       const category = (p.category || '').toLowerCase();
       return category === 'jackets';
     });
-    
+
     // Sort by rating and take top 3
     forcedProducts = generalJackets
       .filter(p => p.rating?.average)
@@ -322,7 +322,7 @@ function forceCorrectProducts(aiResponse: string, products: Product[], contextua
       })
       .slice(0, 3);
   }
-  
+
   console.log(`🚨 FORCE CORRECT: Selected ${forcedProducts.length} products:`, forcedProducts.map(p => p.name));
   return forcedProducts;
 }
@@ -331,7 +331,7 @@ function enhancedProductMatching(aiResponse: string, products: Product[]): Produ
   console.log(`🔍 Enhanced matching: Analyzing AI response for product mentions`);
   const responseLower = aiResponse.toLowerCase();
   const matchedProducts: Product[] = [];
-  
+
   // Look for common Arc'teryx product patterns in AI response
   // Updated to match actual database product names
   const productPatterns = [
@@ -350,28 +350,28 @@ function enhancedProductMatching(aiResponse: string, products: Product[]): Produ
     { pattern: /beta sl/g, type: 'model', dbName: 'beta sl jacket' },
     { pattern: /macai jacket/g, type: 'model', dbName: 'macai jacket' },
     { pattern: /sabre jacket/g, type: 'model', dbName: 'sabre jacket' },
-    
+
     // Product type matches
     { pattern: /jacket/g, type: 'category' },
     { pattern: /vest/g, type: 'category' },
     { pattern: /pant/g, type: 'category' },
     { pattern: /shell/g, type: 'category' }
   ];
-  
+
   // Find products mentioned by model name first (highest priority)
   productPatterns.filter(p => p.type === 'model').forEach(({ pattern, dbName }) => {
     const matches = responseLower.match(pattern);
     if (matches) {
       const modelName = matches[0];
       console.log(`🎯 Enhanced matching: Found model mention "${modelName}", looking for "${dbName}"`);
-      
+
       const matchingProducts = products.filter(product => {
         const productNameLower = product.name.toLowerCase();
         // Try exact match first, then partial match
-        return productNameLower.includes(dbName || modelName) || 
-               productNameLower.includes(modelName);
+        return productNameLower.includes(dbName || modelName) ||
+          productNameLower.includes(modelName);
       });
-      
+
       matchingProducts.forEach(product => {
         if (!matchedProducts.find(p => p.id === product.id)) {
           matchedProducts.push(product);
@@ -380,13 +380,13 @@ function enhancedProductMatching(aiResponse: string, products: Product[]): Produ
       });
     }
   });
-  
+
   // If we found model matches, return those (most specific)
   if (matchedProducts.length > 0) {
     console.log(`🎯 Enhanced matching: Found ${matchedProducts.length} model matches, returning them`);
     return matchedProducts.slice(0, 6);
   }
-  
+
   // Otherwise, look for category matches and return top products
   console.log(`🎯 Enhanced matching: No model matches, looking for category matches`);
   productPatterns.filter(p => p.type === 'category').forEach(({ pattern }) => {
@@ -394,14 +394,14 @@ function enhancedProductMatching(aiResponse: string, products: Product[]): Produ
     if (matches) {
       const categoryName = matches[0];
       console.log(`🎯 Enhanced matching: Found category mention "${categoryName}"`);
-      
+
       const matchingProducts = products.filter(product => {
         const category = (product.category || '').toLowerCase();
-        return category.includes(categoryName) || 
-               (categoryName === 'jacket' && category === 'jackets') ||
-               (categoryName === 'pant' && category === 'pants');
+        return category.includes(categoryName) ||
+          (categoryName === 'jacket' && category === 'jackets') ||
+          (categoryName === 'pant' && category === 'pants');
       });
-      
+
       // Take top products from this category (don't require ratings)
       const sortedProducts = matchingProducts
         .sort((a, b) => {
@@ -414,7 +414,7 @@ function enhancedProductMatching(aiResponse: string, products: Product[]): Produ
           return a.name.localeCompare(b.name);
         })
         .slice(0, 6);
-      
+
       sortedProducts.forEach(product => {
         if (!matchedProducts.find(p => p.id === product.id)) {
           matchedProducts.push(product);
@@ -423,19 +423,19 @@ function enhancedProductMatching(aiResponse: string, products: Product[]): Produ
       });
     }
   });
-  
+
   console.log(`🎯 Enhanced matching: Final result - ${matchedProducts.length} products matched`);
   return matchedProducts.slice(0, 6);
 }
 
 async function handleUpsellFromProductAgent(
-  upsellData: { addedProduct: any; cartItems: any[]; conversationContext?: string },
+  upsellData: { addedProduct: Product; cartItems: Product[]; conversationContext?: string },
   genderPreference: GenderPreference,
   languageCode: string
 ): Promise<ProductAgentResponse> {
   console.log('🛒 Product Agent: Processing upsell for:', upsellData.addedProduct.name);
   console.log('🛒 Product Agent: Conversation context:', upsellData.conversationContext);
-  
+
   // Use the existing upsell agent with conversation context
   return await handleUpsellRequest({
     addedProduct: upsellData.addedProduct,
@@ -577,7 +577,7 @@ export async function handleProductRequest(options: ProductAgentOptions): Promis
   // Removed: conversationContext.previousRequests.length > 0 - this was preventing initial gender-specific queries
 
   // COMMENTED OUT: Direct extraction logic to prevent generic product displays
-  
+
   // if (!shouldSkipDirectExtraction && isGenderClear) {
   //   const conversationHistory = allUserMessages.slice(0, -1);
   //   console.log(`🔍 Attempting direct extraction with:`, {
@@ -618,7 +618,7 @@ export async function handleProductRequest(options: ProductAgentOptions): Promis
   //     hasPreviousRequests: conversationContext.previousRequests.length > 0
   //   });
   // }
-  
+
   console.log(`🚫 DIRECT EXTRACTION DISABLED: All queries will go through AI processing only`);
 
   // Build system message
@@ -657,7 +657,7 @@ Example: If they ask "what about mid layers", recommend specific mid-layer produ
 "For mid layers in your context, I recommend: **Atom Jacket Men's - $350 CAD** - Perfect synthetic insulation..."` : ''}
 
 ${conversationContext.previousRequests.length > 0 ? `
-Previous context: ${conversationContext.previousRequests.join(' → ')}`  : ''}
+Previous context: ${conversationContext.previousRequests.join(' → ')}` : ''}
 
 📝 CONVERSATION HISTORY ANALYSIS:
 ${conversationContext.previousRequests.length > 0 ? `
@@ -819,13 +819,13 @@ Remember: Be helpful but CONCISE - the product tiles will show the details!`
         console.log(`🎯 PRIORITY 1: Extracting products mentioned by AI in response`);
         console.log(`🔍 DEBUG: AI Response text: "${fullResponse}"`);
         console.log(`🔍 DEBUG: Available products sample:`, products.slice(0, 3).map(p => p.name));
-        
+
         // SMART EXTRACTION: Parse AI response for product mentions and map to real products
-        let extractedProducts = extractExactAIMentionedProducts(fullResponse, products);
+        const extractedProducts = extractExactAIMentionedProducts(fullResponse, products);
         console.log(`🔍 DEBUG: Smart extraction returned ${extractedProducts.length} products:`, extractedProducts.map(p => p.name));
-        
+
         // COMMENTED OUT: All fallback logic to ensure carousel shows ONLY AI-mentioned products
-        
+
         // // CRITICAL FIX: If AI mentioned products but we couldn't find exact matches, 
         // // this means the AI is hallucinating product names. Force show the correct products.
         // if (extractedProducts.length === 0 && (fullResponse.includes('jacket') || fullResponse.includes('recommend'))) {
@@ -833,7 +833,7 @@ Remember: Be helpful but CONCISE - the product tiles will show the details!`
         //   extractedProducts = forceCorrectProducts(fullResponse, products, contextualQuery);
         //   console.log(`🔍 DEBUG: Forced correct products:`, extractedProducts.map(p => p.name));
         // }
-        
+
         // // STOP HERE if we found any exact matches - don't add extra products
         // if (extractedProducts.length > 0) {
         //   console.log(`✅ EXACT MATCH SUCCESS: Found ${extractedProducts.length} exact matches, using ONLY these products`);
@@ -871,7 +871,7 @@ Remember: Be helpful but CONCISE - the product tiles will show the details!`
         //     .slice(0, 6);
         //   console.log(`🔍 DEBUG: Emergency fallback returned ${extractedProducts.length} products:`, extractedProducts.map(p => p.name));
         // }
-        
+
         console.log(`🎯 FINAL DECISION: Using ONLY exact AI-mentioned products (${extractedProducts.length} products):`, extractedProducts.map(p => p.name));
 
         if (extractedProducts.length > 0) {

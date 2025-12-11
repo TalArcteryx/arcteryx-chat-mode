@@ -15,7 +15,7 @@ interface ChatContextType {
   addMessage: (message: ChatMessage) => void;
   addMessages: (messages: ChatMessage[]) => void;
   clearMessages: () => void;
-  setMessages: (messages: ChatMessage[]) => void;
+  setMessages: (messages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);

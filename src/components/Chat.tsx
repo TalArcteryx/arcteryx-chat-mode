@@ -83,7 +83,7 @@ export default function Chat({ initialMessage }: ChatProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleUpsellRecommendations = useCallback(async (addedProduct: any) => {
+  const handleUpsellRecommendations = useCallback(async (addedProduct: Product) => {
     // Don't show upsell if we're already loading or if no gender preference is set
     if (isLoading || !genderPreference) {
       return;
@@ -297,17 +297,15 @@ export default function Chat({ initialMessage }: ChatProps) {
       let accumulatedContent = "";
       let extractedProducts: Product[] = [];
       let productsAdded = false;
-      let shouldStopStreaming = false;
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done || shouldStopStreaming) break;
+        if (done) break;
 
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n');
 
         for (const line of lines) {
-          if (shouldStopStreaming) break;
 
 
           if (line.startsWith('data: ')) {
@@ -352,7 +350,7 @@ export default function Chat({ initialMessage }: ChatProps) {
               const parsed = JSON.parse(data);
 
               // Process text content first - AI response is PRIMARY
-              if (parsed.content && !shouldStopStreaming) {
+              if (parsed.content) {
                 accumulatedContent += parsed.content;
                 setStreamingMessage(accumulatedContent);
                 // Add a small delay to make streaming more visible
@@ -391,7 +389,7 @@ export default function Chat({ initialMessage }: ChatProps) {
       setIsLoading(false);
       setStreamingMessage("");
     }
-  }, [messages, languageCode, genderPreference, addMessage, country]);
+  }, [messages, languageCode, genderPreference, addMessage, country, setMessages]);
 
   // Auto-send initial message if provided (only once)
   useEffect(() => {
@@ -472,17 +470,15 @@ export default function Chat({ initialMessage }: ChatProps) {
       const decoder = new TextDecoder();
       let accumulatedContent = "";
       let extractedProducts: Product[] = [];
-      let shouldStopStreaming = false;
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done || shouldStopStreaming) break;
+        if (done) break;
 
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n');
 
         for (const line of lines) {
-          if (shouldStopStreaming) break;
 
 
           if (line.startsWith('data: ')) {
@@ -527,7 +523,7 @@ export default function Chat({ initialMessage }: ChatProps) {
               const parsed = JSON.parse(data);
 
               // Process text content first - AI response is PRIMARY
-              if (parsed.content && !shouldStopStreaming) {
+              if (parsed.content) {
                 accumulatedContent += parsed.content;
                 setStreamingMessage(accumulatedContent);
                 // Add a small delay to make streaming more visible
