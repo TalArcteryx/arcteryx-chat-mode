@@ -273,7 +273,7 @@ Remember: You're not just answering questions - you're helping customers have co
   const completion = await openai.chat.completions.create({
     model: 'gpt-4.1',
     messages: [systemMessage, ...typedMessages],
-    max_tokens: 800,
+    max_tokens: 300,
     temperature: 0.5,
     stream: true,
   });

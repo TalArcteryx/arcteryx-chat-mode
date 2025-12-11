@@ -8,27 +8,11 @@ import ProductModal from "@/components/ProductModal";
 import CompleteYourLookProducts from "@/components/CompleteYourLookProducts";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
+import { useChat } from "@/contexts/ChatContext";
 import { getTranslation } from "@/lib/translations";
+import { BaseProduct } from "@/types/product";
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  currency: string;
-  images?: {
-    main?: string;
-    hover?: string;
-    colors?: Record<string, string>;
-  };
-  url?: string;
-  rating?: {
-    average?: string | null;
-    count?: number;
-  };
-  colors?: string[];
-  badges?: string[];
-}
+type Product = BaseProduct;
 
 interface Message {
   role: "user" | "assistant";
@@ -48,26 +32,50 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export default function Chat({ initialMessage }: ChatProps) {
-  const { languageCode } = useLanguage();
+  const { languageCode, country } = useLanguage();
   const { items: cartItems, suggestedProducts } = useCart();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { messages, addMessage, setMessages } = useChat();
   const [genderPreference, setGenderPreference] = useState<"men" | "women" | null>(null);
   const prevCartItemsRef = useRef<string[]>([]);
   const prevSuggestedProductsRef = useRef<string[]>([]);
   const isInitialMountRef = useRef(true);
+  const hasInitializedRef = useRef(false);
 
-  // Initialize messages with translated initial message
+  // Initialize messages with translated initial message only if no messages exist AND no saved history
   useEffect(() => {
-    if (languageCode) {
-      setMessages([
-        {
-          id: generateId(),
-          role: "assistant",
-          content: getTranslation("chat.initialMessage", languageCode),
-        },
-      ]);
+    // Reset initialization flag when messages are cleared (for new chat)
+    if (messages.length === 0) {
+      hasInitializedRef.current = false;
     }
-  }, [languageCode]);
+
+    if (languageCode && messages.length === 0 && !hasInitializedRef.current) {
+      // Check if there's saved history in localStorage before adding initial message
+      if (typeof window !== 'undefined') {
+        try {
+          const savedMessages = localStorage.getItem('chatHistory');
+          if (savedMessages) {
+            const parsed = JSON.parse(savedMessages);
+            // If there's saved history, don't add initial message - let ChatContext handle it
+            if (parsed.length > 0) {
+              hasInitializedRef.current = true;
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Failed to check chat history:', error);
+        }
+      }
+
+      // Only add initial message if there's truly no history
+      hasInitializedRef.current = true;
+      const initialMessage: Message = {
+        id: generateId(),
+        role: "assistant",
+        content: getTranslation("chat.initialMessage", languageCode),
+      };
+      setMessages([initialMessage]);
+    }
+  }, [languageCode, messages.length, setMessages]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState("");
@@ -95,11 +103,13 @@ export default function Chat({ initialMessage }: ChatProps) {
     // Find newly added items
     const newItems = cartItems.filter(item => !prevCartIds.includes(item.id));
 
+
     if (newItems.length > 0) {
       // Show message for any newly added item
       const newestItem = newItems[newItems.length - 1];
       const message = getTranslation("chat.itemAddedToCart", languageCode || 'en')
         .replace('{productName}', newestItem.name);
+
 
       const assistantMessage: Message = {
         id: generateId(),
@@ -107,11 +117,11 @@ export default function Chat({ initialMessage }: ChatProps) {
         content: message,
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      addMessage(assistantMessage);
     }
 
     prevCartItemsRef.current = currentCartIds;
-  }, [cartItems, languageCode]);
+  }, [cartItems, languageCode, addMessage]);
 
   // Watch for suggested products and add "Complete Your Look" message
   useEffect(() => {
@@ -126,12 +136,16 @@ export default function Chat({ initialMessage }: ChatProps) {
       const currentSuggestedIds = suggestedProducts.map(p => p.id).sort();
       const prevSuggestedIds = prevSuggestedProductsRef.current.sort();
 
+
       // Check if suggested products changed (new suggestions appeared or changed)
       const idsChanged = currentSuggestedIds.length !== prevSuggestedIds.length ||
         currentSuggestedIds.some((id, idx) => id !== prevSuggestedIds[idx]);
 
+        currentSuggestedIds.some((id, idx) => id !== prevSuggestedIds[idx]);
+
       if (idsChanged) {
         const message = getTranslation("chat.completeYourLook", languageCode || 'en');
+
 
         const assistantMessage: Message = {
           id: generateId(),
@@ -153,13 +167,13 @@ export default function Chat({ initialMessage }: ChatProps) {
           })),
         };
 
-        setMessages(prev => [...prev, assistantMessage]);
+        addMessage(assistantMessage);
         prevSuggestedProductsRef.current = suggestedProducts.map(p => p.id);
       }
     } else if (suggestedProducts.length === 0) {
       prevSuggestedProductsRef.current = [];
     }
-  }, [suggestedProducts, cartItems.length, languageCode]);
+  }, [suggestedProducts, cartItems.length, languageCode, addMessage]);
 
   const handleInitialMessage = useCallback(async (message: string) => {
     const userMessage: Message = {
@@ -168,7 +182,7 @@ export default function Chat({ initialMessage }: ChatProps) {
       content: message,
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    addMessage(userMessage);
     setIsLoading(true);
     setStreamingMessage("");
 
@@ -182,6 +196,7 @@ export default function Chat({ initialMessage }: ChatProps) {
           messages: [{ role: "assistant", content: messages[0].content }, userMessage],
           languageCode: languageCode,
           genderPreference: genderPreference,
+          country: country,
         }),
       });
 
@@ -209,6 +224,7 @@ export default function Chat({ initialMessage }: ChatProps) {
 
         for (const line of lines) {
           if (shouldStopStreaming) break;
+
 
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
@@ -266,6 +282,7 @@ export default function Chat({ initialMessage }: ChatProps) {
                 // Don't stop streaming or show products immediately - let AI finish
               }
 
+
               if (parsed.genderPreference) {
                 setGenderPreference(parsed.genderPreference);
               }
@@ -276,8 +293,8 @@ export default function Chat({ initialMessage }: ChatProps) {
         }
       }
 
+
       // Log final state
-      console.log('handleInitialMessage - Final products:', extractedProducts.length);
     } catch (error) {
       console.error("Error:", error);
       const errorMessage: Message = {
@@ -285,12 +302,12 @@ export default function Chat({ initialMessage }: ChatProps) {
         role: "assistant",
         content: "Sorry, I encountered an error. Please try again.",
       };
-      setMessages(prev => [...prev, errorMessage]);
+      addMessage(errorMessage);
     } finally {
       setIsLoading(false);
       setStreamingMessage("");
     }
-  }, [messages, languageCode, genderPreference]);
+  }, [messages, languageCode, genderPreference, addMessage, country]);
 
   // Auto-send initial message if provided (only once)
   useEffect(() => {
@@ -332,10 +349,11 @@ export default function Chat({ initialMessage }: ChatProps) {
       content: inputValue.trim(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    addMessage(userMessage);
     setInputValue("");
     setIsLoading(true);
     setStreamingMessage("");
+
 
     // Trigger smooth scroll to bottom when sending
     setTimeout(() => {
@@ -354,6 +372,7 @@ export default function Chat({ initialMessage }: ChatProps) {
           messages: [...messages, userMessage],
           languageCode: languageCode,
           genderPreference: genderPreference,
+          country: country,
         }),
       });
 
@@ -380,6 +399,7 @@ export default function Chat({ initialMessage }: ChatProps) {
 
         for (const line of lines) {
           if (shouldStopStreaming) break;
+
 
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
@@ -436,6 +456,7 @@ export default function Chat({ initialMessage }: ChatProps) {
                 console.log('📦 Products received (will show after AI response completes):', parsed.products.length, parsed.products.map((p: Product) => p.name));
                 // Don't stop streaming or show products immediately - let AI finish
               }
+
 
               if (parsed.genderPreference) {
                 setGenderPreference(parsed.genderPreference);
@@ -585,6 +606,7 @@ export default function Chat({ initialMessage }: ChatProps) {
           />
         </div>
       </div>
+
 
       <style jsx>{`
         @keyframes fadeInUp {

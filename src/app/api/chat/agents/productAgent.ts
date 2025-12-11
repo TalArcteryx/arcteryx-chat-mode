@@ -44,8 +44,7 @@ function buildProductCatalog(genderPreference: GenderPreference): string {
       const rating = product.rating?.average ? ` (${product.rating.average}/5 stars, ${product.rating.count || 0} reviews)` : '';
       const badges = product.badges && product.badges.length > 0 ? ` [${product.badges.join(', ')}]` : '';
       const colors = product.colors && product.colors.length > 0 ? ` Available colors: ${product.colors.slice(0, 5).join(', ')}${product.colors.length > 5 ? '...' : ''}` : '';
-      const mainImage = product.images?.main ? ` [Main Image: ${product.images.main}]` : '';
-      catalog += `- ${product.name}: ${product.description}. $${product.price} CAD${rating}${badges}${colors}${mainImage}\n`;
+      catalog += `- ${product.name}: ${product.description}. $${product.price} CAD${rating}${badges}${colors}\n`;
     });
   });
 

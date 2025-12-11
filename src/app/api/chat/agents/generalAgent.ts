@@ -137,7 +137,7 @@ Remember: You're not just representing a brand - you're sharing a passion for th
   const completion = await openai.chat.completions.create({
     model: 'gpt-4.1',
     messages: [systemMessage, ...typedMessages],
-    max_tokens: 500,
+    max_tokens: 250,
     temperature: 0.8,
     stream: true,
   });

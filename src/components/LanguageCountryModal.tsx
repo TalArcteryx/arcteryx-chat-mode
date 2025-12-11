@@ -3,30 +3,8 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-const countries = [
-  { code: "CA", name: "Canada", languages: [{ code: "en", name: "English" }, { code: "fr", name: "Français" }] },
-  { code: "US", name: "United States", languages: [{ code: "en", name: "English" }, { code: "es", name: "Español" }] },
-  { code: "GB", name: "United Kingdom", languages: [{ code: "en", name: "English" }] },
-  { code: "FR", name: "France", languages: [{ code: "fr", name: "Français" }] },
-  { code: "DE", name: "Germany", languages: [{ code: "de", name: "Deutsch" }] },
-  { code: "ES", name: "Spain", languages: [{ code: "es", name: "Español" }] },
-  { code: "IT", name: "Italy", languages: [{ code: "it", name: "Italiano" }] },
-  { code: "JP", name: "Japan", languages: [{ code: "ja", name: "日本語" }] },
-  { code: "CN", name: "China", languages: [{ code: "zh", name: "中文" }] },
-  { code: "KR", name: "South Korea", languages: [{ code: "ko", name: "한국어" }] },
-];
-
-const languageNames: Record<string, string> = {
-  en: "English",
-  fr: "Français",
-  es: "Español",
-  de: "Deutsch",
-  it: "Italiano",
-  ja: "日本語",
-  zh: "中文",
-  ko: "한국어",
-};
+import { useDeveloperConsole } from "@/contexts/DeveloperConsoleContext";
+import { countries, languageNames, getCountryByName, getCountryByCode, getLanguagesForCountry } from "@/lib/countries";
 
 interface LanguageCountryModalProps {
   isOpen?: boolean;
@@ -35,6 +13,7 @@ interface LanguageCountryModalProps {
 
 export default function LanguageCountryModal({ isOpen: controlledIsOpen, onClose }: LanguageCountryModalProps = {}) {
   const { setPreferences, hasSelectedPreferences, country, languageCode } = useLanguage();
+  const { addLog } = useDeveloperConsole();
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("");
   const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>("");
@@ -43,12 +22,10 @@ export default function LanguageCountryModal({ isOpen: controlledIsOpen, onClose
   useEffect(() => {
     if (controlledIsOpen !== undefined ? controlledIsOpen : !hasSelectedPreferences) {
       if (country && languageCode) {
-        // Find country code from country name
-        const countryData = countries.find((c) => c.name === country);
+        const countryData = getCountryByName(country);
         if (countryData) {
           setSelectedCountry(countryData.code);
-          const langName = languageNames[languageCode] || "";
-          setSelectedLanguage(langName);
+          setSelectedLanguage(languageNames[languageCode] || "");
           setSelectedLanguageCode(languageCode);
         }
       } else {
@@ -60,13 +37,21 @@ export default function LanguageCountryModal({ isOpen: controlledIsOpen, onClose
     }
   }, [controlledIsOpen, hasSelectedPreferences, country, languageCode]);
 
-  const selectedCountryData = countries.find((c) => c.code === selectedCountry);
-  const availableLanguages = selectedCountryData?.languages || [];
+  const availableLanguages = getLanguagesForCountry(selectedCountry);
 
   const handleContinue = () => {
     if (selectedCountry && selectedLanguage && selectedLanguageCode) {
-      const countryName = countries.find((c) => c.code === selectedCountry)?.name || "";
+      const countryData = getCountryByCode(selectedCountry);
+      const countryName = countryData?.name || "";
       setPreferences(countryName, selectedLanguage, selectedLanguageCode);
+      
+      // Log country selection for developer console
+      addLog(
+        `Country selected: ${countryName}`,
+        "info",
+        `Pulling inventory from ${countryName}`
+      );
+      
       if (onClose) {
         onClose();
       }

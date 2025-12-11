@@ -30,8 +30,10 @@ export function extractProductsFromQuery(options: ExtractProductsOptions): Produ
 
   const extractedProducts: Product[] = [];
 
-  // Check for "Top 10" queries
-  if (combinedText.includes('top 10') || combinedText.includes('top10') || combinedText.includes('top ten')) {
+  // Check for "Top 10", "Top 5", or "Top 3" queries
+  if (combinedText.includes('top 10') || combinedText.includes('top10') || combinedText.includes('top ten') || 
+      combinedText.includes('top 5') || combinedText.includes('top5') || combinedText.includes('top five') ||
+      combinedText.includes('top 3') || combinedText.includes('top3') || combinedText.includes('top three')) {
     let targetCategory: string | null = null;
     let targetGender: string | null = null;
 
@@ -49,10 +51,10 @@ export function extractProductsFromQuery(options: ExtractProductsOptions): Produ
       targetCategory = 'footwear';
     }
 
-    let top10Products = [...productsToSearch];
+    let topProducts = [...productsToSearch];
 
     if (targetCategory) {
-      top10Products = top10Products.filter((p) => {
+      topProducts = topProducts.filter((p) => {
         const pCategory = (p.category || '').toLowerCase();
         return pCategory === targetCategory ||
           (targetCategory === 'jackets' && (pCategory === 'jacket' || pCategory === 'jackets')) ||
@@ -62,13 +64,13 @@ export function extractProductsFromQuery(options: ExtractProductsOptions): Produ
     }
 
     if (targetGender) {
-      top10Products = top10Products.filter((p) => {
+      topProducts = topProducts.filter((p) => {
         const pGender = (p.gender || '').toLowerCase();
         return pGender === targetGender || pGender === targetGender + "'s";
       });
     }
 
-    const sortedProducts = top10Products
+    const sortedProducts = topProducts
       .filter(p => p.rating?.average && parseFloat(p.rating.average) > 0)
       .sort((a, b) => {
         const ratingA = parseFloat(a.rating?.average || '0');
@@ -80,7 +82,7 @@ export function extractProductsFromQuery(options: ExtractProductsOptions): Produ
         }
         return ratingB - ratingA;
       })
-      .slice(0, 10);
+      .slice(0, 5);
 
     return sortedProducts;
   }

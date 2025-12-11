@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageCircle, Search, Settings, User, Package, Gift, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { MessageCircle, Search, Settings, User, Package, Gift, HelpCircle, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslation } from "@/lib/translations";
 
@@ -34,6 +34,12 @@ export default function SidebarMenu({ isExpanded, onToggle }: SidebarMenuProps) 
       labelKey: "menu.account",
       icon: User,
       href: "/account",
+    },
+    {
+      id: "wishlist",
+      labelKey: "menu.wishlist",
+      icon: Heart,
+      href: "/wishlist",
     },
     {
       id: "tracking",
@@ -68,9 +74,12 @@ export default function SidebarMenu({ isExpanded, onToggle }: SidebarMenuProps) 
       }`}
     >
       {/* Header */}
-      <div className={`flex items-center justify-center px-4 border-b border-border ${
-        isExpanded ? "py-[26.25px]" : "py-[22.5px]"
-      }`}>
+      <Link 
+        href="/"
+        className={`flex items-center justify-center px-4 border-b border-border cursor-pointer hover:opacity-80 transition-opacity ${
+          isExpanded ? "py-[26.25px]" : "py-[22.5px]"
+        }`}
+      >
         {isExpanded ? (
           <Image
             src="/logo-h.png"
@@ -90,7 +99,7 @@ export default function SidebarMenu({ isExpanded, onToggle }: SidebarMenuProps) 
             priority
           />
         )}
-      </div>
+      </Link>
 
       {/* Menu Items */}
       <div className="flex-1 overflow-y-auto p-4">
