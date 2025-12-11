@@ -12,7 +12,7 @@ import { useChat } from "@/contexts/ChatContext";
 import { getTranslation } from "@/lib/translations";
 import { BaseProduct } from "@/types/product";
 
-interface Product extends BaseProduct { }
+type Product = BaseProduct;
 
 interface Message {
   role: "user" | "assistant";
@@ -252,11 +252,8 @@ export default function Chat({ initialMessage }: ChatProps) {
 
               // Handle log events from server
               if (parsed.log) {
-                addLog(
-                  parsed.log.message,
-                  parsed.log.level as "info" | "success" | "warning" | "error",
-                  parsed.log.details
-                );
+                // Log to console for debugging
+                console.log(`[${parsed.log.level}]`, parsed.log.message, parsed.log.details);
                 continue;
               }
 
@@ -318,7 +315,7 @@ export default function Chat({ initialMessage }: ChatProps) {
       setIsLoading(false);
       setStreamingMessage("");
     }
-  }, [messages, languageCode, genderPreference, addMessage]);
+  }, [messages, languageCode, genderPreference, addMessage, country]);
 
   // Auto-send initial message if provided (only once)
   useEffect(() => {
@@ -443,11 +440,8 @@ export default function Chat({ initialMessage }: ChatProps) {
 
               // Handle log events from server
               if (parsed.log) {
-                addLog(
-                  parsed.log.message,
-                  parsed.log.level as "info" | "success" | "warning" | "error",
-                  parsed.log.details
-                );
+                // Log to console for debugging
+                console.log(`[${parsed.log.level}]`, parsed.log.message, parsed.log.details);
                 continue;
               }
 
