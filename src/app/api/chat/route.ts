@@ -47,43 +47,9 @@ export async function POST(request: NextRequest) {
         return isProductRequest(msg) || categoryKeywords.some(kw => msg.includes(kw));
       });
 
-    // Check if we can extract products directly (before routing)
-    const isGenderOnlyMsg = isGenderOnlyMessage(lastUserMessageText);
-    const shouldTryDirectExtraction = 
-      (isProductRequest(lastUserMessageText) || (isGenderOnlyMsg && hasProductRequestInHistory)) &&
-      currentGenderPreference !== null;
-
-    if (shouldTryDirectExtraction) {
-      const conversationHistory = allUserMessages.slice(0, -1);
-      const directProducts = extractProductsFromQuery({
-        query: lastUserMessageText,
-        genderPreference: currentGenderPreference,
-        conversationHistory,
-      });
-
-      if (directProducts.length > 0) {
-        console.log(`✅ Direct product extraction: ${directProducts.length} products`);
-        const encoder = new TextEncoder();
-        const stream = new ReadableStream({
-          async start(controller) {
-            if (currentGenderPreference !== genderPreference) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ genderPreference: currentGenderPreference })}\n\n`));
-            }
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ products: directProducts })}\n\n`));
-            controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-            controller.close();
-          },
-        });
-
-        return new Response(stream, {
-          headers: {
-            'Content-Type': 'text/plain; charset=utf-8',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-          },
-        });
-      }
-    }
+    // DISABLED: Direct product extraction to allow enhanced agent context processing
+    // The product agent now handles all product extraction with proper context awareness
+    console.log(`🚫 Skipping direct extraction in route.ts - letting product agent handle context-aware processing`);
 
     // Classify intent using router
     const routerResult = await classifyIntent(lastUserMessageText, messages);

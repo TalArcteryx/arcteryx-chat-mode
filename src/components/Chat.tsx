@@ -103,11 +103,13 @@ export default function Chat({ initialMessage }: ChatProps) {
     // Find newly added items
     const newItems = cartItems.filter(item => !prevCartIds.includes(item.id));
 
+
     if (newItems.length > 0) {
       // Show message for any newly added item
       const newestItem = newItems[newItems.length - 1];
       const message = getTranslation("chat.itemAddedToCart", languageCode || 'en')
         .replace('{productName}', newestItem.name);
+
 
       const assistantMessage: Message = {
         id: generateId(),
@@ -134,12 +136,16 @@ export default function Chat({ initialMessage }: ChatProps) {
       const currentSuggestedIds = suggestedProducts.map(p => p.id).sort();
       const prevSuggestedIds = prevSuggestedProductsRef.current.sort();
 
+
       // Check if suggested products changed (new suggestions appeared or changed)
       const idsChanged = currentSuggestedIds.length !== prevSuggestedIds.length ||
         currentSuggestedIds.some((id, idx) => id !== prevSuggestedIds[idx]);
 
+        currentSuggestedIds.some((id, idx) => id !== prevSuggestedIds[idx]);
+
       if (idsChanged) {
         const message = getTranslation("chat.completeYourLook", languageCode || 'en');
+
 
         const assistantMessage: Message = {
           id: generateId(),
@@ -219,30 +225,41 @@ export default function Chat({ initialMessage }: ChatProps) {
         for (const line of lines) {
           if (shouldStopStreaming) break;
 
+
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
             if (data === '[DONE]') {
-              // Stream finished, add the complete message with products
-              // If products exist, only add message with products (no text content)
-              if (extractedProducts.length > 0 && !productsAdded) {
-                const assistantMessage: Message = {
-                  id: generateId(),
-                  role: "assistant",
-                  content: accumulatedContent.trim(), // Include text explanation
-                  products: extractedProducts.length > 0 ? extractedProducts : undefined,
-                };
-                addMessage(assistantMessage);
-                productsAdded = true;
-              } else if (accumulatedContent.trim() && !productsAdded) {
-                // Only add text message if no products and there's content
+              // Stream finished - ALWAYS prioritize AI response, products are supplementary
+              console.log('📦 handleInitialMessage complete. AI response length:', accumulatedContent.length, 'Products:', extractedProducts.length);
+
+              if (accumulatedContent.trim()) {
+                // Create message with AI response (primary) and products (supplementary)
                 const assistantMessage: Message = {
                   id: generateId(),
                   role: "assistant",
                   content: accumulatedContent,
+                  products: extractedProducts.length > 0 ? extractedProducts : undefined,
                 };
-                addMessage(assistantMessage);
+                console.log('✅ handleInitialMessage: AI response + products:', {
+                  contentLength: accumulatedContent.length,
+                  productsCount: extractedProducts.length
+                });
+                setMessages(prev => [...prev, assistantMessage]);
+                productsAdded = true;
+              } else if (extractedProducts.length > 0) {
+                // Fallback: only show products if no AI response (backup scenario)
+                const assistantMessage: Message = {
+                  id: generateId(),
+                  role: "assistant",
+                  content: "Here are some recommendations for you:",
+                  products: extractedProducts,
+                };
+                console.log('⚠️ handleInitialMessage fallback: No AI response, showing products only');
+                setMessages(prev => [...prev, assistantMessage]);
+                productsAdded = true;
               }
-              // Add a small delay before hiding streaming message for smoother transition
+
+              // Clear streaming message with smooth transition
               setTimeout(() => setStreamingMessage(""), 100);
               break;
             }
@@ -250,47 +267,21 @@ export default function Chat({ initialMessage }: ChatProps) {
             try {
               const parsed = JSON.parse(data);
 
-              // Handle log events from server
-              if (parsed.log) {
-                // Log to console for debugging
-                console.log(`[${parsed.log.level}]`, parsed.log.message, parsed.log.details);
-                continue;
-              }
-
-              // CRITICAL: Check for products FIRST, before processing any text content
-              // If products are received, handle them IMMEDIATELY and skip ALL text content
-              if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
-                extractedProducts = parsed.products;
-                // Immediately add products and stop streaming text completely
-                if (!productsAdded) {
-                  const assistantMessage: Message = {
-                    id: generateId(),
-                    role: "assistant",
-                    content: "", // NO text content when products are shown
-                    products: extractedProducts,
-                  };
-                  addMessage(assistantMessage);
-                  productsAdded = true;
-                  accumulatedContent = "";
-                  setStreamingMessage(""); // Clear any streaming text immediately
-                  setIsLoading(false); // Stop loading immediately when products are shown
-                  // Stop reading the stream - we have products, no need for text
-                  shouldStopStreaming = true;
-                  reader.cancel().catch(() => { }); // Cancel stream, ignore errors
-                  break;
-                }
-                // Skip processing content when products are present
-                continue;
-              }
-
-              // Only process text content if no products have been added
-              // CRITICAL: If products were found, we should have already exited above
-              if (!productsAdded && !shouldStopStreaming && parsed.content) {
+              // Process text content first - AI response is PRIMARY
+              if (parsed.content && !shouldStopStreaming) {
                 accumulatedContent += parsed.content;
                 setStreamingMessage(accumulatedContent);
                 // Add a small delay to make streaming more visible
-                await delay(50); // 50ms delay between chunks
+                await delay(30); // 30ms delay between chunks for smoother streaming
               }
+
+              // Store products but don't display them immediately - they're supplementary
+              if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
+                extractedProducts = parsed.products;
+                console.log('📦 Products received during handleInitialMessage (will show after AI response completes):', parsed.products.length, parsed.products.map((p: Product) => p.name));
+                // Don't stop streaming or show products immediately - let AI finish
+              }
+
 
               if (parsed.genderPreference) {
                 setGenderPreference(parsed.genderPreference);
@@ -301,6 +292,7 @@ export default function Chat({ initialMessage }: ChatProps) {
           }
         }
       }
+
 
       // Log final state
     } catch (error) {
@@ -362,6 +354,7 @@ export default function Chat({ initialMessage }: ChatProps) {
     setIsLoading(true);
     setStreamingMessage("");
 
+
     // Trigger smooth scroll to bottom when sending
     setTimeout(() => {
       scrollToBottom();
@@ -407,30 +400,41 @@ export default function Chat({ initialMessage }: ChatProps) {
         for (const line of lines) {
           if (shouldStopStreaming) break;
 
+
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
             if (data === '[DONE]') {
-              // Stream finished, add the complete message with products
-              // If products exist, only add message with products (no text content)
-              if (extractedProducts.length > 0 && !productsAdded) {
-                const assistantMessage: Message = {
-                  id: generateId(),
-                  role: "assistant",
-                  content: accumulatedContent.trim(), // Include text explanation
-                  products: extractedProducts.length > 0 ? extractedProducts : undefined,
-                };
-                addMessage(assistantMessage);
-                productsAdded = true;
-              } else if (accumulatedContent.trim() && !productsAdded) {
-                // Only add text message if no products and there's content
+              // Stream finished - ALWAYS prioritize AI response, products are supplementary
+              console.log('📦 handleSubmit complete. AI response length:', accumulatedContent.length, 'Products:', extractedProducts.length);
+
+              if (accumulatedContent.trim()) {
+                // Create message with AI response (primary) and products (supplementary)
                 const assistantMessage: Message = {
                   id: generateId(),
                   role: "assistant",
                   content: accumulatedContent,
+                  products: extractedProducts.length > 0 ? extractedProducts : undefined,
                 };
-                addMessage(assistantMessage);
+                console.log('✅ handleSubmit: AI response + products:', {
+                  contentLength: accumulatedContent.length,
+                  productsCount: extractedProducts.length
+                });
+                setMessages(prev => [...prev, assistantMessage]);
+                productsAdded = true;
+              } else if (extractedProducts.length > 0) {
+                // Fallback: only show products if no AI response (backup scenario)
+                const assistantMessage: Message = {
+                  id: generateId(),
+                  role: "assistant",
+                  content: "Here are some recommendations for you:",
+                  products: extractedProducts,
+                };
+                console.log('⚠️ handleSubmit fallback: No AI response, showing products only');
+                setMessages(prev => [...prev, assistantMessage]);
+                productsAdded = true;
               }
-              // Add a small delay before hiding streaming message for smoother transition
+
+              // Clear streaming message with smooth transition
               setTimeout(() => setStreamingMessage(""), 100);
               break;
             }
@@ -438,47 +442,21 @@ export default function Chat({ initialMessage }: ChatProps) {
             try {
               const parsed = JSON.parse(data);
 
-              // Handle log events from server
-              if (parsed.log) {
-                // Log to console for debugging
-                console.log(`[${parsed.log.level}]`, parsed.log.message, parsed.log.details);
-                continue;
-              }
-
-              // CRITICAL: Check for products FIRST, before processing any text content
-              // If products are received, handle them IMMEDIATELY and skip ALL text content
-              if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
-                extractedProducts = parsed.products;
-                // Immediately add products and stop streaming text completely
-                if (!productsAdded) {
-                  const assistantMessage: Message = {
-                    id: generateId(),
-                    role: "assistant",
-                    content: "", // NO text content when products are shown
-                    products: extractedProducts,
-                  };
-                  addMessage(assistantMessage);
-                  productsAdded = true;
-                  accumulatedContent = "";
-                  setStreamingMessage(""); // Clear any streaming text immediately
-                  setIsLoading(false); // Stop loading immediately when products are shown
-                  // Stop reading the stream - we have products, no need for text
-                  shouldStopStreaming = true;
-                  reader.cancel().catch(() => { }); // Cancel stream, ignore errors
-                  break;
-                }
-                // Skip processing content when products are present
-                continue;
-              }
-
-              // Only process text content if no products have been added
-              // CRITICAL: If products were found, we should have already exited above
-              if (!productsAdded && !shouldStopStreaming && parsed.content) {
+              // Process text content first - AI response is PRIMARY
+              if (parsed.content && !shouldStopStreaming) {
                 accumulatedContent += parsed.content;
                 setStreamingMessage(accumulatedContent);
                 // Add a small delay to make streaming more visible
-                await delay(50); // 50ms delay between chunks
+                await delay(30); // 30ms delay between chunks for smoother streaming
               }
+
+              // Store products but don't display them immediately - they're supplementary
+              if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
+                extractedProducts = parsed.products;
+                console.log('📦 Products received (will show after AI response completes):', parsed.products.length, parsed.products.map((p: Product) => p.name));
+                // Don't stop streaming or show products immediately - let AI finish
+              }
+
 
               if (parsed.genderPreference) {
                 setGenderPreference(parsed.genderPreference);
@@ -498,7 +476,7 @@ export default function Chat({ initialMessage }: ChatProps) {
           role: "assistant",
           content: "Sorry, I encountered an error. Please try again.",
         };
-        addMessage(errorMessage);
+        setMessages(prev => [...prev, errorMessage]);
       }
     } finally {
       setIsLoading(false);
@@ -529,8 +507,8 @@ export default function Chat({ initialMessage }: ChatProps) {
                   >
                     <div
                       className={`max-w-[80%] ${message.role === "user"
-                          ? "bg-primary text-primary-foreground rounded-2xl px-4 py-3 shadow-sm"
-                          : "text-foreground"
+                        ? "bg-primary text-primary-foreground rounded-2xl px-4 py-3 shadow-sm"
+                        : "text-foreground"
                         }`}
                     >
                       {message.role === "user" ? (
@@ -628,6 +606,7 @@ export default function Chat({ initialMessage }: ChatProps) {
           />
         </div>
       </div>
+
 
       <style jsx>{`
         @keyframes fadeInUp {
