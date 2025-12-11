@@ -1,12 +1,13 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { BaseProduct } from "@/types/product";
 
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
-  products?: any[];
+  products?: BaseProduct[];
 }
 
 interface ChatContextType {

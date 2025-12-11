@@ -12,8 +12,8 @@ import { countries, languageNames, getCountryByName, getCountryByCode, getLangua
 export default function SettingsPage() {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const [notifications, setNotifications] = useState(true);
-  const { theme, toggleTheme, isDark } = useTheme();
-  const { country, language, languageCode, setPreferences } = useLanguage();
+  const { toggleTheme, isDark } = useTheme();
+  const { country, languageCode, setPreferences } = useLanguage();
   const [selectedCountryCode, setSelectedCountryCode] = useState<string>("");
   const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>("");
 

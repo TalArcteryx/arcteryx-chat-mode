@@ -53,7 +53,7 @@ export default function WishlistPage() {
     return allProducts.filter(product => wishlistedIds.has(product.id));
   }, [allProducts, wishlistedIds]);
 
-  const handleAddToCart = (product: ProductCardType, color: string) => {
+  const handleAddToCart = (product: ProductCardType) => {
     const simpleProduct = allProducts.find(p => p.id === product.id);
     if (simpleProduct) {
       // Ensure rating format matches CartContext expectations

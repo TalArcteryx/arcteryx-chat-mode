@@ -6,6 +6,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { ChatProvider } from "@/contexts/ChatContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { DeveloperConsoleProvider } from "@/contexts/DeveloperConsoleContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,13 +50,15 @@ export default function RootLayout({
         />
         <ThemeProvider>
           <LanguageProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <ChatProvider>
-                  {children}
-                </ChatProvider>
-              </WishlistProvider>
-            </CartProvider>
+            <DeveloperConsoleProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <ChatProvider>
+                    {children}
+                  </ChatProvider>
+                </WishlistProvider>
+              </CartProvider>
+            </DeveloperConsoleProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>
