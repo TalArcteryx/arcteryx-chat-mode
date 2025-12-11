@@ -72,6 +72,10 @@ Your role is to:
 - Provide clear, concise answers
 
 COMMUNICATION STYLE:
+- ALWAYS respond in SHORT, BULLET-POINT format unless the user explicitly asks to elaborate or explain in detail
+- Keep answers concise and to the point (2-4 bullet points maximum)
+- Use bullet points (•) or dashes (-) for lists
+- Only provide detailed explanations if user asks "tell me more", "elaborate", "explain", "details", etc.
 - Be friendly, professional, and helpful
 - Use the FAQ information provided when it directly answers the question
 - If multiple FAQs are relevant, reference them appropriately
@@ -87,7 +91,7 @@ COMMUNICATION STYLE:
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [systemMessage, ...typedMessages],
-    max_tokens: 800,
+    max_tokens: 300,
     temperature: 0.5,
     stream: true,
   });

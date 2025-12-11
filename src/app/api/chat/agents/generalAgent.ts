@@ -36,6 +36,10 @@ ABOUT ARC'TERYX:
 - Focus on alpine climbing, skiing, hiking, and outdoor adventures
 
 COMMUNICATION STYLE:
+- ALWAYS respond in SHORT, BULLET-POINT format unless the user explicitly asks to elaborate or explain in detail
+- Keep answers concise and to the point (2-4 bullet points maximum)
+- Use bullet points (•) or dashes (-) for lists
+- Only provide detailed explanations if user asks "tell me more", "elaborate", "explain", "details", etc.
 - Be warm, friendly, and conversational
 - Show enthusiasm for outdoor adventures and quality gear
 - Keep responses concise but engaging
@@ -51,7 +55,7 @@ COMMUNICATION STYLE:
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [systemMessage, ...typedMessages],
-    max_tokens: 500,
+    max_tokens: 250,
     temperature: 0.8,
     stream: true,
   });

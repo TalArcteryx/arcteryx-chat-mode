@@ -12,6 +12,7 @@ interface LanguageCountryModalProps {
 
 export default function LanguageCountryModal({ isOpen: controlledIsOpen, onClose }: LanguageCountryModalProps = {}) {
   const { setPreferences, hasSelectedPreferences, country, languageCode } = useLanguage();
+  const { addLog } = useDeveloperConsole();
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("");
   const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>("");
@@ -42,6 +43,14 @@ export default function LanguageCountryModal({ isOpen: controlledIsOpen, onClose
       const countryData = getCountryByCode(selectedCountry);
       const countryName = countryData?.name || "";
       setPreferences(countryName, selectedLanguage, selectedLanguageCode);
+      
+      // Log country selection for developer console
+      addLog(
+        `Country selected: ${countryName}`,
+        "info",
+        `Pulling inventory from ${countryName}`
+      );
+      
       if (onClose) {
         onClose();
       }
@@ -97,7 +106,7 @@ export default function LanguageCountryModal({ isOpen: controlledIsOpen, onClose
                 className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Select a language</option>
-                {availableLanguages.map((lang) => (
+                {allLanguages.map((lang) => (
                   <option key={lang.code} value={lang.code}>
                     {lang.name}
                   </option>

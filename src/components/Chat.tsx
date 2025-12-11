@@ -32,7 +32,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export default function Chat({ initialMessage }: ChatProps) {
-  const { languageCode } = useLanguage();
+  const { languageCode, country } = useLanguage();
   const { items: cartItems, suggestedProducts } = useCart();
   const { messages, addMessage, setMessages } = useChat();
   const [genderPreference, setGenderPreference] = useState<"men" | "women" | null>(null);
@@ -185,6 +185,7 @@ export default function Chat({ initialMessage }: ChatProps) {
           messages: [{ role: "assistant", content: messages[0].content }, userMessage],
           languageCode: languageCode,
           genderPreference: genderPreference,
+          country: country,
         }),
       });
 
@@ -222,8 +223,8 @@ export default function Chat({ initialMessage }: ChatProps) {
                 const assistantMessage: Message = {
                   id: generateId(),
                   role: "assistant",
-                  content: "",
-                  products: extractedProducts,
+                  content: accumulatedContent.trim(), // Include text explanation
+                  products: extractedProducts.length > 0 ? extractedProducts : undefined,
                 };
                 addMessage(assistantMessage);
                 productsAdded = true;
@@ -244,8 +245,17 @@ export default function Chat({ initialMessage }: ChatProps) {
             try {
               const parsed = JSON.parse(data);
               
-              // CRITICAL: Check for products FIRST, before processing any text content
-              // If products are received, handle them IMMEDIATELY and skip ALL text content
+              // Handle log events from server
+              if (parsed.log) {
+                addLog(
+                  parsed.log.message,
+                  parsed.log.level as "info" | "success" | "warning" | "error",
+                  parsed.log.details
+                );
+                continue;
+              }
+              
+              // Handle products - store them but don't stop streaming text
               if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
                 extractedProducts = parsed.products;
                 // Immediately add products and stop streaming text completely
@@ -270,8 +280,7 @@ export default function Chat({ initialMessage }: ChatProps) {
                 continue;
               }
               
-              // Only process text content if no products have been added
-              // CRITICAL: If products were found, we should have already exited above
+              // Process text content - always accumulate it
               if (!productsAdded && !shouldStopStreaming && parsed.content) {
                 accumulatedContent += parsed.content;
                 setStreamingMessage(accumulatedContent);
@@ -366,6 +375,7 @@ export default function Chat({ initialMessage }: ChatProps) {
           messages: [...messages, userMessage],
           languageCode: languageCode,
           genderPreference: genderPreference,
+          country: country,
         }),
       });
 
@@ -402,8 +412,8 @@ export default function Chat({ initialMessage }: ChatProps) {
                 const assistantMessage: Message = {
                   id: generateId(),
                   role: "assistant",
-                  content: "",
-                  products: extractedProducts,
+                  content: accumulatedContent.trim(), // Include text explanation
+                  products: extractedProducts.length > 0 ? extractedProducts : undefined,
                 };
                 addMessage(assistantMessage);
                 productsAdded = true;
@@ -424,8 +434,17 @@ export default function Chat({ initialMessage }: ChatProps) {
             try {
               const parsed = JSON.parse(data);
               
-              // CRITICAL: Check for products FIRST, before processing any text content
-              // If products are received, handle them IMMEDIATELY and skip ALL text content
+              // Handle log events from server
+              if (parsed.log) {
+                addLog(
+                  parsed.log.message,
+                  parsed.log.level as "info" | "success" | "warning" | "error",
+                  parsed.log.details
+                );
+                continue;
+              }
+              
+              // Handle products - store them but don't stop streaming text
               if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
                 extractedProducts = parsed.products;
                 // Immediately add products and stop streaming text completely
@@ -450,10 +469,8 @@ export default function Chat({ initialMessage }: ChatProps) {
                 continue;
               }
               
-              // Only process text content if no products have been added
-              // CRITICAL: If products were found, we should have already exited above
+              // Process text content - always accumulate it
               if (!productsAdded && !shouldStopStreaming && parsed.content) {
-                // Only accumulate content if we haven't found products
                 accumulatedContent += parsed.content;
                 setStreamingMessage(accumulatedContent);
                 // Add a small delay to make streaming more visible
