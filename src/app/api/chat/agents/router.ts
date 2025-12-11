@@ -136,6 +136,18 @@ function performAdvancedKeywordAnalysis(userMessage: string, context: Conversati
     faqScore += 1;
   }
 
+  // "What about..." queries are almost always product recommendations in context
+  if (messageLower.startsWith('what about') || messageLower.includes('what about')) {
+    console.log(`🎯 Router: "What about..." query detected - boosting product intent`);
+    productScore += 5; // Strong boost for "what about" queries
+    
+    // If it mentions product categories, it's definitely a product request
+    const productCategories = ['jacket', 'pant', 'shoe', 'boot', 'layer', 'mid', 'shell', 'vest', 'gear', 'clothing'];
+    if (productCategories.some(cat => messageLower.includes(cat))) {
+      return { intent: 'product', confidence: 0.95, reasoning: '"What about..." product category query' };
+    }
+  }
+
   // Gender-specific queries (both initial and follow-up)
   const genderResponses = ['men', 'mens', "men's", 'women', 'womens', "women's", 'male', 'female', 'guy', 'lady'];
   const hasGenderTerm = genderResponses.some(g => messageLower.includes(g));

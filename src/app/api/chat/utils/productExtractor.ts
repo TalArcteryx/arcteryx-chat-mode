@@ -9,17 +9,17 @@ export interface ExtractProductsOptions {
 
 export function extractProductsFromQuery(options: ExtractProductsOptions): Product[] {
   const { query, genderPreference, conversationHistory = [], limit = 6 } = options;
-  
+
   console.log(`🔍 ProductExtractor: extractProductsFromQuery called with:`, {
     query,
     genderPreference,
     conversationHistoryLength: conversationHistory.length,
     limit
   });
-  
+
   const productsToSearch = getProductDataByGender(genderPreference);
   console.log(`🔍 ProductExtractor: Found ${productsToSearch.length} products for gender: ${genderPreference}`);
-  
+
   if (productsToSearch.length === 0) {
     console.log(`❌ ProductExtractor: No products found for gender preference: ${genderPreference}`);
     return [];
@@ -27,7 +27,7 @@ export function extractProductsFromQuery(options: ExtractProductsOptions): Produ
 
   const combinedText = [...conversationHistory, query].join(' ').toLowerCase();
   console.log(`🔍 ProductExtractor: Combined text to search: "${combinedText}"`);
-  
+
   const extractedProducts: Product[] = [];
 
   // Check for "Top 10" queries
@@ -202,9 +202,96 @@ export function extractProductsFromQuery(options: ExtractProductsOptions): Produ
     }
   }
 
+  // UPSELL FALLBACK: If no specific matches found, return contextually relevant products
+  console.log(`🛒 UPSELL FALLBACK: No specific matches found, analyzing conversation for relevant products`);
+
+  let fallbackProducts: Product[] = [];
+
+  // SMART CONTEXT ANALYSIS: Look for any product-related terms and context clues
+  const weatherTerms = ['cold', 'warm', 'hot', 'cool', 'winter', 'summer', 'spring', 'fall', 'autumn', 'rain', 'snow', 'wind', 'sun'];
+  const activityTerms = ['hiking', 'climbing', 'skiing', 'snowboard', 'running', 'cycling', 'walking', 'travel', 'work', 'city', 'urban', 'outdoor', 'mountain', 'trail'];
+  const productTerms = ['jacket', 'shell', 'layer', 'mid', 'base', 'insulation', 'pant', 'shoe', 'boot', 'pack', 'bag', 'glove', 'hat', 'toque'];
+  const featureTerms = ['waterproof', 'breathable', 'lightweight', 'packable', 'durable', 'warm', 'insulated', 'gore-tex', 'windproof'];
+
+  // Analyze conversation context to determine what type of products to show
+  const hasWeatherContext = weatherTerms.some(term => combinedText.includes(term));
+  const hasActivityContext = activityTerms.some(term => combinedText.includes(term));
+  const hasProductContext = productTerms.some(term => combinedText.includes(term));
+  const hasFeatureContext = featureTerms.some(term => combinedText.includes(term));
+
+  console.log(`🔍 UPSELL Context Analysis:`, {
+    hasWeatherContext,
+    hasActivityContext,
+    hasProductContext,
+    hasFeatureContext,
+    combinedText: combinedText.substring(0, 100) + '...'
+  });
+
+  // Strategy 1: If there's any product/weather/activity context, show relevant category products
+  if (hasProductContext || hasWeatherContext || hasActivityContext || hasFeatureContext) {
+    console.log(`🛒 UPSELL: Product context detected - showing category-based products`);
+
+    // Prioritize jackets and core products for most conversations
+    const coreCategories = ['jackets', 'jacket', 'pants', 'pant'];
+    fallbackProducts = productsToSearch.filter(p => {
+      const category = (p.category || '').toLowerCase();
+      return coreCategories.includes(category);
+    });
+
+    // If we have specific product terms, filter further
+    if (combinedText.includes('jacket') || combinedText.includes('shell')) {
+      fallbackProducts = fallbackProducts.filter(p => {
+        const category = (p.category || '').toLowerCase();
+        return category === 'jackets' || category === 'jacket';
+      });
+    } else if (combinedText.includes('pant')) {
+      fallbackProducts = fallbackProducts.filter(p => {
+        const category = (p.category || '').toLowerCase();
+        return category === 'pants' || category === 'pant';
+      });
+    }
+
+    // Sort by rating and take top products
+    fallbackProducts = fallbackProducts
+      .filter(p => p.rating?.average)
+      .sort((a, b) => {
+        const ratingA = parseFloat(a.rating?.average || '0');
+        const ratingB = parseFloat(b.rating?.average || '0');
+        return ratingB - ratingA;
+      })
+      .slice(0, limit);
+  }
+
+  // Strategy 2: If still no products, show top-rated products across all categories
+  if (fallbackProducts.length === 0) {
+    console.log(`🛒 UPSELL: No context matches - showing top-rated products as universal fallback`);
+    fallbackProducts = productsToSearch
+      .filter(p => p.rating?.average && parseFloat(p.rating.average) > 3.5)
+      .sort((a, b) => {
+        const ratingA = parseFloat(a.rating?.average || '0');
+        const ratingB = parseFloat(b.rating?.average || '0');
+        const countA = a.rating?.count || 0;
+        const countB = b.rating?.count || 0;
+
+        // Sort by rating first, then by review count
+        if (ratingB === ratingA) {
+          return countB - countA;
+        }
+        return ratingB - ratingA;
+      })
+      .slice(0, limit);
+  }
+
+  if (fallbackProducts.length > 0) {
+    console.log(`✅ UPSELL FALLBACK: Found ${fallbackProducts.length} contextual products:`, fallbackProducts.map(p => p.name));
+    return fallbackProducts;
+  }
+
   console.log(`⚠️ ProductExtractor: No products found for query "${query}" - returning empty array`);
   return extractedProducts.slice(0, limit);
 }
+
+
 
 export function extractProductsFromText(
   text: string,
@@ -241,12 +328,12 @@ export function extractProductsFromText(
 
   // PRIORITY: Extract products in the ORDER they are mentioned by the AI
   // This ensures we show exactly what the bot recommends in the right sequence
-  
+
   const productMatches: Array<{ product: Product; position: number }> = [];
-  
+
   products.forEach((product) => {
     const productNameLower = product.name.toLowerCase();
-    
+
     // Remove gender prefixes for matching
     const productNameWithoutGender = productNameLower
       .replace(/\b(men's|mens|women's|womens)\b/g, '')
@@ -254,7 +341,7 @@ export function extractProductsFromText(
       .trim();
 
     let matchPosition = -1;
-    
+
     // Check for exact or near-exact product name mentions
     if (textLower.includes(productNameLower)) {
       matchPosition = textLower.indexOf(productNameLower);
@@ -275,12 +362,12 @@ export function extractProductsFromText(
         }
       }
     }
-    
+
     if (matchPosition >= 0) {
       productMatches.push({ product, position: matchPosition });
     }
   });
-  
+
   // Sort by position in text (order mentioned) and add to extracted products
   productMatches
     .sort((a, b) => a.position - b.position)
@@ -293,18 +380,18 @@ export function extractProductsFromText(
   // REMOVED: Category matching and fallback logic
   // We ONLY want to show products that the AI specifically mentions by name
   // This ensures the product carousel matches exactly what the bot recommends
-  
+
   console.log('🎯 STRICT MODE: Only showing products specifically mentioned by the AI');
 
   const finalProducts = extractedProducts.slice(0, 6);
   console.log(`🎯 FINAL RESULT - Products to show (${finalProducts.length}):`, finalProducts.map(p => p.name));
-  
+
   if (finalProducts.length === 0) {
     console.log(`✅ CORRECT: No products specifically mentioned by AI - showing no products`);
   } else {
     console.log(`✅ SHOWING ONLY: Products specifically mentioned by AI in order`);
   }
-  
+
   return finalProducts;
 }
 
