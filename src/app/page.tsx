@@ -19,7 +19,7 @@ import { getTranslation } from "@/lib/translations";
 import { getCountryFlag } from "@/lib/countryFlags";
 
 function HomeContent() {
-  const { messages } = useChat();
+  const { messages, clearMessages } = useChat();
   const [isChatStarted, setIsChatStarted] = useState(() => {
     // Auto-start chat if there's existing history (more than just the initial message)
     if (typeof window !== 'undefined') {
@@ -60,8 +60,11 @@ function HomeContent() {
   };
 
   const handleNewChat = () => {
+    // Clear all chat messages and start fresh
+    clearMessages();
     setIsChatStarted(false);
     setInputValue("");
+    // The Chat component will automatically add a new initial message when messages are cleared
   };
 
   if (isChatStarted) {
